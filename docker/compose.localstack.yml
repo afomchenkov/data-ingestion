@@ -10,10 +10,25 @@ services:
     environment:
       - SERVICES=s3
       - DEBUG=1
-      - DATA_DIR=/tmp/localstack/data
-      - DEFAULT_REGION=us-east-1
+      - PERSISTENCE=1
       - AWS_ACCESS_KEY_ID=local_aws_key
       - AWS_SECRET_ACCESS_KEY=local_aws_secret
+      - DEFAULT_REGION=us-east-1
+      # - EDGE_PORT=4566
+      # - LAMBDA_EXECUTOR=docker-reuse
+      # - DATA_DIR=/tmp/localstack/data
     volumes:
-      - "./localstack:/var/lib/localstack"
-      - "/var/run/docker.sock:/var/run/docker.sock"
+      - ./localstack:/var/lib/localstack
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./localstack-setup.sh:/etc/localstack/init/ready.d/01-create-bucket.sh
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "aws --endpoint-url=http://localhost:4566 s3 ls || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - data-ingestion-network
