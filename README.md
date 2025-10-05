@@ -11,4 +11,8 @@ docker compose \
   -f docker/compose.kafka.yml \
   -f docker/compose.monitoring.yml \
   up -d
+
+# OR
+
+make up
 ```

@@ -1,0 +1,22 @@
+{
+    "name": "data-ingestion",
+    "version": "1.0.0",
+    "directories": {
+        "doc": "docs"
+    },
+    "private": true,
+    "workspaces": [
+        "packages/*"
+    ],
+    "references": [
+        {
+            "path": "packages/lib"
+        }
+    ],
+    "scripts": {
+        "bootstrap": "yarn install && yarn run build:common",
+        "start:common": "(yarn start:lib)",
+        "build:common": "yarn build:lib",
+        "lint": "yarn workspaces run lint"
+    }
+}
