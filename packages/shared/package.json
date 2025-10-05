@@ -1,0 +1,21 @@
+{
+  "name": "@ingest/shared",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "prebuild": "rimraf dist",
+    "build": "tsc",
+    "start:dev": "tsc --watch",
+    "lint": "eslint \"{src,test}/**/*.ts\" --fix"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.33.1",
+    "@typescript-eslint/parser": "^5.33.1",
+    "eslint": "^8.22.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "prettier": "^2.7.1",
+    "typescript": "^5.8.3"
+  }
+}
