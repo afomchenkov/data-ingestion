@@ -1,16 +1,29 @@
-version: '3.8'
+version: "3.8"
 
 services:
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
     ports:
-      - '3000:3000'
+      - "3000:3000"
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
     volumes:
       - v_grafana_data:/var/lib/grafana
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3000/api/health",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - data-ingestion-network
 
@@ -18,9 +31,9 @@ services:
     image: prom/prometheus:latest
     container_name: prometheus
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yaml
+      - ../monitoring/prometheus.yml:/etc/prometheus/prometheus.yaml
     ports:
-      - '9090:9090'
+      - "9090:9090"
     command:
       - --config.file=/etc/prometheus/prometheus.yaml
       - --web.enable-lifecycle
@@ -32,11 +45,11 @@ services:
     container_name: loki
     user: root
     ports:
-      - '9095:9095'
-      - '3100:3100'
+      - "9095:9095"
+      - "3100:3100"
     command: -config.file=/etc/loki/local-config.yaml
     volumes:
-      - ./loki-config.yml:/etc/loki/local-config.yaml
+      - ../monitoring/loki-config.yml:/etc/loki/local-config.yaml
       - v_loki_data:/loki
     networks:
       - data-ingestion-network
@@ -45,7 +58,7 @@ services:
     image: grafana/promtail:2.9.2
     container_name: promtail
     volumes:
-      - ./promtail-config.yml:/etc/promtail/config.yml
+      - ../monitoring/promtail-config.yml:/etc/promtail/config.yml
     command: -config.file=/etc/promtail/config.yml
     networks:
       - data-ingestion-network

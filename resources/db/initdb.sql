@@ -1,6 +1,6 @@
--- Control table for jobs
-CREATE TABLE ingestion_job (
-    job_id uuid PRIMARY KEY,
+DROP TABLE IF EXISTS ingest_job CASCADE;
+CREATE TABLE ingest_job (
+    id uuid PRIMARY KEY,
     uploader_id uuid,
     filename text,
     content_sha256 text,
@@ -11,30 +11,41 @@ CREATE TABLE ingestion_job (
     updated_at timestamptz DEFAULT now()
 );
 
--- Data table (example for generic row storage)
+DROP TABLE IF EXISTS tenant CASCADE;
+CREATE TABLE tenant (
+    id uuid PRIMARY KEY,
+    name text NOT NULL,
+    email text NOT NULL,
+    phone text NOT NULL,
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now()
+);
+
+DROP TABLE IF EXISTS processed_data CASCADE;
 CREATE TABLE processed_data (
-    row_key text PRIMARY KEY, -- derived natural key or GUID
-    tenant_id uuid,
+    id uuid PRIMARY KEY,
+    tenant_id uuid REFERENCES tenant(id),
     payload jsonb NOT NULL,
     row_content_sha256 text NOT NULL,
     source_timestamp timestamptz,
-    ingestion_job_id uuid REFERENCES ingestion_job(job_id),
+    ingest_job_id uuid REFERENCES ingest_job(id),
     version bigint DEFAULT 1,
     created_at timestamptz DEFAULT now(),
     updated_at timestamptz DEFAULT now()
 );
 
--- CREATE TABLE customer (
---     id uuid PRIMARY KEY,
---     name text NOT NULL,
---     email text NOT NULL,
---     phone text NOT NULL,
---     created_at timestamptz DEFAULT now(),
---     updated_at timestamptz DEFAULT now()
--- );
+DROP TABLE IF EXISTS ingest_error CASCADE;
+CREATE TABLE ingest_error (
+    id uuid PRIMARY KEY,
+    uploader_id uuid,
+    filename text,
+    content_sha256 text,
+    error_message text,
+    error_status text,
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now()
+);
 
-
--- Indexes for common filters
 CREATE INDEX ON processed_data (tenant_id);
 CREATE INDEX ON processed_data ((payload->>'status'));
 CREATE INDEX ON processed_data (source_timestamp);

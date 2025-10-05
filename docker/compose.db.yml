@@ -5,7 +5,7 @@ services:
     image: data-ingestion:dev
     container_name: data-ingestion-db
     build:
-      context: ./resources/db
+      context: ../resources/db
       dockerfile: Dockerfile.db
     restart: unless-stopped
     ports:
