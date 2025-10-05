@@ -1,5 +1,5 @@
 {
-  "name": "@ingest/shared",
+  "name": "@data-ingestion/shared",
   "version": "1.0.0",
   "main": "dist/index.js",
   "scripts": {
