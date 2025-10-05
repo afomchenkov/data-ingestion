@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 
 
 def random_date(start, end):
+    """Generate a random datetime between `start` and `end`."""
     return start + timedelta(
         seconds=random.randint(0, int((end - start).total_seconds())),
     )
@@ -52,7 +53,7 @@ def generate_csv(filename="random_data.csv", rows=10000):
             ]
         )
 
-        for _ in range(rows):
+        for i in range(rows):
             date = random_date(start_date, end_date).strftime("%Y-%m-%d")
             name = random_name()
             description = random_description()
@@ -64,8 +65,11 @@ def generate_csv(filename="random_data.csv", rows=10000):
                 [date, name, description, random_sum, random_average, random_decimals]
             )
 
-    print(f"✅ Generated {rows} rows in {filename}")
+            if (i + 1) % 1000 == 0:
+                print(f"Written {i+1} rows...")
+
+    print(f"✅ Finished writing {rows} rows to {filename}")
 
 
 if __name__ == "__main__":
-    generate_csv()
+    generate_csv(rows=1000)
