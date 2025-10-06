@@ -1,4 +1,4 @@
-FROM node:22-alpine3.19 AS dependencies
+FROM node:20-alpine3.19 AS dependencies
 
 WORKDIR /app
 
@@ -17,7 +17,7 @@ COPY . ./
 
 RUN yarn build
 
-FROM node:22-alpine3.19 AS production
+FROM node:20-alpine3.19 AS production
 
 WORKDIR /app
 

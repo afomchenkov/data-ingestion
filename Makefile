@@ -12,6 +12,9 @@ up:
 down:
 	docker compose $(COMPOSE_FILES) down
 
+build:
+	docker compose $(COMPOSE_FILES) build
+
 logs:
 	docker compose $(COMPOSE_FILES) logs -f
 
