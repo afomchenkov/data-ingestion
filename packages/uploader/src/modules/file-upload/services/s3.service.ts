@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
   S3Client,
@@ -10,12 +10,19 @@ import { Readable } from 'stream';
 
 @Injectable()
 export class S3Service {
+  private readonly logger = new Logger(S3Service.name);
+
   private s3Client: S3Client;
   private bucketName: string;
 
   constructor(private readonly configService: ConfigService) {
+    const endpoint = this.configService.getOrThrow('AWS_LOCALSTACK_URL');
+    const requiredForcePathStyle = this.configService.getOrThrow('AWS_FORCE_PATH_STYLE');
+
     this.s3Client = new S3Client({
       region: this.configService.getOrThrow('AWS_REGION'),
+      endpoint,
+      forcePathStyle: requiredForcePathStyle === 'true',
       credentials: {
         accessKeyId: this.configService.getOrThrow('AWS_ACCESS_KEY_ID'),
         secretAccessKey: this.configService.getOrThrow('AWS_SECRET_ACCESS_KEY'),
@@ -32,7 +39,12 @@ export class S3Service {
       Bucket: this.bucketName,
       Key: key,
     });
-    return getSignedUrl(this.s3Client, command, { expiresIn });
+    const presignedUrl = await getSignedUrl(this.s3Client, command, { expiresIn });
+
+    this.logger.log(`Presigned URL key: ${key}`);
+    this.logger.log(`Presigned URL issued: ${presignedUrl}`);
+
+    return presignedUrl;;
   }
 
   async getFileStream(key: string): Promise<Readable> {

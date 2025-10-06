@@ -1,31 +1,20 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DbSettingsService } from './db-settings.service';
-
-// import {
-//   ProjectEntity,
-//   BoardEntity,
-//   BoardColumnEntity,
-//   CaseCardEntity
-// } from '../entities';
-// import {
-//   CaseCardService,
-//   BoardService,
-//   BoardColumnService,
-//   ProjectService,
-// } from '../services';
+import { TenantEntity } from './entities';
+import { TenantService } from './services';
 
 const entities = [
-
+  TenantEntity
 ];
 
 const services = [
   DbSettingsService,
+  TenantService,
 ]
 
 @Module({
-  imports: [ConfigModule.forRoot(), TypeOrmModule.forFeature(entities)],
+  imports: [TypeOrmModule.forFeature(entities)],
   providers: [...services],
   exports: [...services],
 })

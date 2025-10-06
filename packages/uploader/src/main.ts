@@ -33,10 +33,10 @@ async function bootstrap() {
     bufferLogs: true,
     cors: true,
     logger: WinstonModule.createLogger({
-      level: ['development'].includes(process.env.NODE_ENV) ? 'debug' : 'info',
+      level: ['development'].includes(process.env.NODE_ENV ?? '') ? 'debug' : 'info',
       transports: [
         new transports.Console({
-          format: ['development'].includes(process.env.NODE_ENV)
+          format: ['development'].includes(process.env.NODE_ENV ?? '')
             ? format.combine(
               format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }),
               format.ms(),

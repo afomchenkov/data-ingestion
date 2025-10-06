@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { S3Service } from './s3.service';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -13,6 +13,8 @@ export interface UploadMetadata {
 
 @Injectable()
 export class FileUploadService {
+  private readonly logger = new Logger(FileUploadService.name);
+
   constructor(private s3Service: S3Service) {}
 
   async initiateUpload(
@@ -21,9 +23,13 @@ export class FileUploadService {
   ): Promise<UploadMetadata> {
     const uploadId = uuidv4();
     const { year, month, day } = this.getDatePath();
-    const s3Key = `/${year}/${month}/${day}/${tenantId}/${uploadId}/${fileName}`;
+    const s3Key = `/${year}/${month}/${day}/tenant/${tenantId}/upload/${uploadId}/${fileName}`;
 
     const presignedUrl = await this.s3Service.generatePresignedUploadUrl(s3Key);
+
+    this.logger.log(`Upload initiated: ${uploadId}`);
+    this.logger.log(`S3 Key: ${s3Key}`);
+    this.logger.log(`Presigned URL: ${presignedUrl}`);
 
     return {
       uploadId,
