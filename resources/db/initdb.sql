@@ -1,3 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS 'pgcrypto';
+
 DROP TABLE IF EXISTS ingest_job CASCADE;
 CREATE TABLE ingest_job (
     id uuid PRIMARY KEY,
@@ -49,3 +51,22 @@ CREATE TABLE ingest_error (
 CREATE INDEX ON processed_data (tenant_id);
 CREATE INDEX ON processed_data ((payload->>'status'));
 CREATE INDEX ON processed_data (source_timestamp);
+
+-- ------------------------------------------------------------
+-- ------------------------------------------------------------
+
+-- INSERT INTO tenant (id, name, email, phone)
+-- VALUES
+--     (gen_random_uuid(), 'Tenant1', 'tenant1@example.com', '+49(162)555-0001'),
+--     (gen_random_uuid(), 'Tenant2', 'tenant2@example.com', '+49(162)555-0002'),
+--     (gen_random_uuid(), 'Tenant3', 'tenant3@example.com', '+49(162)555-0003'),
+--     (gen_random_uuid(), 'Tenant4', 'tenant4@example.com', '+49(162)555-0004'),
+--     (gen_random_uuid(), 'Tenant5', 'tenant5@example.com', '+49(162)555-0005');
+
+INSERT INTO tenant (id, name, email, phone)
+SELECT
+    gen_random_uuid(),
+    'Tenant' || ((random() * 100)::int + 1),
+    'tenant' || ((random() * 1000)::int + 1) || '@example.com',
+    '+49(162)' || lpad(((random() * 9999)::int)::text, 4, '0')
+FROM generate_series(1, 10);
