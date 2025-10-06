@@ -1,4 +1,4 @@
-CREATE EXTENSION IF NOT EXISTS 'pgcrypto';
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 DROP TABLE IF EXISTS ingest_job CASCADE;
 CREATE TABLE ingest_job (
@@ -54,14 +54,6 @@ CREATE INDEX ON processed_data (source_timestamp);
 
 -- ------------------------------------------------------------
 -- ------------------------------------------------------------
-
--- INSERT INTO tenant (id, name, email, phone)
--- VALUES
---     (gen_random_uuid(), 'Tenant1', 'tenant1@example.com', '+49(162)555-0001'),
---     (gen_random_uuid(), 'Tenant2', 'tenant2@example.com', '+49(162)555-0002'),
---     (gen_random_uuid(), 'Tenant3', 'tenant3@example.com', '+49(162)555-0003'),
---     (gen_random_uuid(), 'Tenant4', 'tenant4@example.com', '+49(162)555-0004'),
---     (gen_random_uuid(), 'Tenant5', 'tenant5@example.com', '+49(162)555-0005');
 
 INSERT INTO tenant (id, name, email, phone)
 SELECT
