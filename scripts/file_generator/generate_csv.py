@@ -72,4 +72,11 @@ def generate_csv(filename="random_data.csv", rows=10000):
 
 
 if __name__ == "__main__":
-    generate_csv(rows=1000)
+    generate_csv(rows=100_000)
+
+# Upload to S3
+#
+# curl -X PUT \
+#   -T ./random_data.csv \
+#   -H "Content-Type: text/csv" \
+#   "signed_url"
