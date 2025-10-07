@@ -68,7 +68,7 @@ def generate_csv(filename="random_data.csv", rows=10000):
             if (i + 1) % 1000 == 0:
                 print(f"Written {i+1} rows...")
 
-    print(f"✅ Finished writing {rows} rows to {filename}")
+    print(f"Finished writing {rows} rows to {filename}")
 
 
 if __name__ == "__main__":
