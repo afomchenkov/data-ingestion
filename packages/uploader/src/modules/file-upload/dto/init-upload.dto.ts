@@ -1,16 +1,27 @@
-import { IsString, IsUUID, Matches } from 'class-validator';
+import { IsString, IsUUID, Matches, IsIn } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class InitiateUploadDto {
   @ApiProperty({
-    description: 'Name of the file to be uploaded (must be CSV or JSON, including extension)',
-    example: 'document.csv',
+    description: 'Unique name of the file (alphanumeric, underscores, or dashes only; no spaces or special characters)',
+    example: 'document_123',
   })
   @IsString()
-  @Matches(/\.(csv|json)$/i, {
-    message: 'fileName must end with .csv or .json',
+  @Matches(/^[a-zA-Z0-9_-]+$/, {
+    message: 'fileName must contain only letters, numbers, underscores, or dashes (no spaces or special characters)',
   })
   fileName: string;
+
+  @ApiProperty({
+    description: 'Type of the file (must be either csv or json)',
+    example: 'csv',
+    enum: ['csv', 'json'],
+  })
+  @IsString()
+  @IsIn(['csv', 'json'], {
+    message: 'fileType must be either csv or json',
+  })
+  fileType: string;
 
   @ApiProperty({
     description: 'Unique identifier for the tenant',

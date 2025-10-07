@@ -24,17 +24,4 @@ export class UploadMetadataDto {
     example: 'https://s3.amazonaws.com/bucket/key?signature=123',
   })
   presignedUrl: string;
-
-  @ApiProperty({
-    description:
-      'Array of chunk S3 keys if the file is uploaded in multiple chunks',
-    example: ['chunk1', 'chunk2'],
-  })
-  chunkKeys: string[];
-
-  @ApiProperty({
-    description: 'Total number of chunks the file is split into',
-    example: 5,
-  })
-  totalChunks: number;
 }
