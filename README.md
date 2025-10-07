@@ -59,6 +59,12 @@ docker volume rm $(docker volume ls -q)
 docker logs kafka
 # check running images
 docker ps
+
+# login into Kafka bash
+docker exec -it kafka bash
+
+# verify topics
+kafka-topics --list --bootstrap-server localhost:9092
 ```
 
 ## Check Grafana logs

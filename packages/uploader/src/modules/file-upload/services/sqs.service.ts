@@ -96,6 +96,11 @@ export class SqsService implements OnModuleInit, OnModuleDestroy {
 
   private async handleMessage(message: any) {
     try {
+      if (!message.Body) {
+        this.logger.error('Message body is empty');
+        return;
+      }
+
       const body = JSON.parse(message.Body);
       const payload = body.Records ? body : JSON.parse(body.Message);
       const record = payload.Records[0];
