@@ -56,6 +56,8 @@ export class SqsService {
           for (const message of Messages) {
             await this.handleMessage(message);
 
+            // TODO: handle message failure, try again later
+
             // delete message after processing
             await this.sqsClient.send(
               new DeleteMessageCommand({
@@ -83,9 +85,10 @@ export class SqsService {
 
       // do file validation, check if valid CSV/JSON/Parquet and fire Kafka message to parser service
 
+      this.logger.log(`========================================`);
       this.logger.log(`File Body: ${JSON.stringify(body)}`);
-      this.logger.log(`File Record: ${JSON.stringify(record)}`);
       this.logger.log(`File uploaded: s3://${bucket}/${key}`);
+      this.logger.log(`========================================`);
     } catch (error) {
       this.logger.error(`Error handling SQS message: ${error}`);
     }
