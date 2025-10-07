@@ -8,24 +8,29 @@ export enum IngestJobStatus {
   INITIATED = 'initiated',
   COMPLETE = 'complete',
   FAILED = 'failed',
+  STALE = 'stale',
+  DUPLICATE = 'duplicate',
 }
 
 @Entity({ name: 'ingest_job' })
 @Check(
-  `"status" IN ('uploaded','processing','queued','initiated','complete','failed')`,
+  `"status" IN ('uploaded','processing','queued','initiated','complete','failed','stale','duplicate')`,
 )
 export class IngestJobEntity extends BaseEntity {
   @Column({ type: 'uuid', nullable: true, name: 'tenant_id' })
   tenantId: string | null;
 
+  @Column({ type: 'uuid', nullable: true, name: 'upload_id' })
+  uploadId: string | null;
+
   @Column({ type: 'text', nullable: true, name: 'filename' })
-  filename: string | null;
+  fileName: string | null;
 
   @Column({ type: 'text', nullable: true, name: 'file_type' })
   fileType: string | null;
 
-  @Column({ type: 'text', nullable: true, name: 'file_version_id' })
-  fileVersionId: string | null;
+  @Column({ type: 'text', nullable: true, name: 'file_path' })
+  filePath: string | null;
 
   @Column({ type: 'text', nullable: true, name: 'content_sha256' })
   contentSha256: string | null;

@@ -1,12 +1,14 @@
-import { Controller, Post, Body, Get, Param, Query } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param } from '@nestjs/common';
 import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { FileUploadService, AllFilesResponse } from './services/file-upload.service';
+import { FileUploadService } from './services/file-upload.service';
 import { TenantService } from '../db/services';
 import {
   InitiateUploadDto,
+  IngestJobDto,
   UploadMetadataDto,
   TenantResponseDto,
   CreateTenantDto,
+  UploadedFileVersionDto,
 } from './dto';
 
 @ApiTags('Files Upload')
@@ -17,7 +19,7 @@ export class FileUploadController {
     private readonly tenantService: TenantService,
   ) {}
 
-  @Post('initiate-upload')
+  @Post('/uploads/init')
   @ApiOperation({ summary: 'Initiate a file upload' })
   @ApiBody({ type: InitiateUploadDto })
   @ApiOkResponse({ type: UploadMetadataDto })
@@ -28,23 +30,19 @@ export class FileUploadController {
     return this.fileUploadService.initiateUpload(fileName, fileType, tenantId);
   }
 
-  // API check upload status
-
-  // API check upload versions
-
-  @Get()
-  @ApiOperation({ summary: 'Get all files' })
-  async getAllFiles(): Promise<AllFilesResponse> {
-    return this.fileUploadService.getAllFiles();
+  @Get('/uploads/:uploadId')
+  @ApiOperation({ summary: 'Get upload job status' })
+  async getUploadStatus(@Param('uploadId') uploadId: string): Promise<IngestJobDto | null> {
+    return this.fileUploadService.getUploadStatus(uploadId);
   }
 
   @Get('/versions')
   @ApiOperation({ summary: 'Get file versions' })
-  async getFileVersions(@Param('key') key: string): Promise<any[]> {
+  async getFileVersions(@Param('key') key: string): Promise<UploadedFileVersionDto[]> {
     return this.fileUploadService.getFileVersions(key);
   }
 
-  @Post('tenants')
+  @Post('/tenants')
   @ApiOperation({ summary: 'Create a tenant' })
   @ApiOkResponse({ type: TenantResponseDto })
   async create(
@@ -53,19 +51,10 @@ export class FileUploadController {
     return this.tenantService.create(payload);
   }
 
-  @Get('tenants')
+  @Get('/tenants')
   @ApiOperation({ summary: 'Get all tenants' })
   @ApiOkResponse({ type: Array<TenantResponseDto> })
   async getAllTenants(): Promise<TenantResponseDto[]> {
     return this.tenantService.findAll();
-  }
-
-  @Get('tenants/:tenantId')
-  @ApiOperation({ summary: 'Get a tenant by id' })
-  @ApiOkResponse({ type: TenantResponseDto })
-  async getTenantById(
-    @Param('tenantId') tenantId: string,
-  ): Promise<TenantResponseDto | null> {
-    return this.tenantService.findOne(tenantId);
   }
 }
