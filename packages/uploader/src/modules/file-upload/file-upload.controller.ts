@@ -1,6 +1,6 @@
-import { Controller, Post, Body, Get, Param } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Query } from '@nestjs/common';
 import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { FileUploadService } from './services/file-upload.service';
+import { FileUploadService, AllFilesResponse } from './services/file-upload.service';
 import { TenantService } from '../db/services';
 import {
   InitiateUploadDto,
@@ -13,8 +13,8 @@ import {
 @Controller('files')
 export class FileUploadController {
   constructor(
-    private fileUploadService: FileUploadService,
-    private tenantService: TenantService,
+    private readonly fileUploadService: FileUploadService,
+    private readonly tenantService: TenantService,
   ) {}
 
   @Post('initiate-upload')
@@ -24,8 +24,24 @@ export class FileUploadController {
   async initiateUpload(
     @Body() payload: InitiateUploadDto,
   ): Promise<UploadMetadataDto> {
-    const { fileName, tenantId } = payload;
-    return this.fileUploadService.initiateUpload(fileName, tenantId);
+    const { fileName, fileType, tenantId } = payload;
+    return this.fileUploadService.initiateUpload(fileName, fileType, tenantId);
+  }
+
+  // API check upload status
+
+  // API check upload versions
+
+  @Get()
+  @ApiOperation({ summary: 'Get all files' })
+  async getAllFiles(): Promise<AllFilesResponse> {
+    return this.fileUploadService.getAllFiles();
+  }
+
+  @Get('/versions')
+  @ApiOperation({ summary: 'Get file versions' })
+  async getFileVersions(@Param('key') key: string): Promise<any[]> {
+    return this.fileUploadService.getFileVersions(key);
   }
 
   @Post('tenants')
