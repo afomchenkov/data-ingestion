@@ -25,19 +25,21 @@ make down
 
 This should start all necessary services and dependencies.
 
-## DB Credentials
-
-```txt
-db_name: data-ingestion
-user: postgres
-password: secret
-```
-
 ## Log in to PgAdmin on local start
 
 ```txt
+url: http://localhost:5050
 email: pgadmin4@pgadmin.org
 password: postgres
+```
+
+## DB Credentials
+
+```txt
+host: data-ingestion-db
+db_name: data-ingestion
+user: postgres
+password: secret
 ```
 
 ## Check DB
@@ -46,6 +48,9 @@ password: postgres
 # check logs
 docker logs data-ingestion-db
 docker logs --tail 100 -f data-ingestion-db
+
+# remove all volumes
+docker volume rm $(docker volume ls -q)
 ```
 
 ## Check Kafka status

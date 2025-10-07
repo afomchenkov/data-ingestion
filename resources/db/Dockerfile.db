@@ -2,7 +2,8 @@ FROM postgres:17
 
 RUN apt-get update && apt-get -y install git build-essential postgresql-server-dev-17
 
-COPY initdb.sql /docker-entrypoint-initdb.d/init.sql
+COPY initdb.sql /docker-entrypoint-initdb.d/01-init.sql
+COPY ingest_data.sql /docker-entrypoint-initdb.d/02-ingest_data.sql
 
 ENV POSTGRES_DB=data-ingestion
 ENV POSTGRES_USER=postgres

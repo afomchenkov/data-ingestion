@@ -18,7 +18,6 @@ services:
       # - EDGE_PORT=4566
       # - LAMBDA_EXECUTOR=docker-reuse
     volumes:
-      - localstack_data:/tmp/localstack # persist data locally
       - ./localstack:/var/lib/localstack
       - /var/run/docker.sock:/var/run/docker.sock
       - ./localstack-setup.sh:/etc/localstack/init/ready.d/01-create-bucket.sh
