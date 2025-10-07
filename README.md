@@ -96,6 +96,7 @@ docker exec -it localstack awslocal sqs list-queues
 
 # check bucket config
 docker exec -it localstack awslocal s3api get-bucket-notification-configuration --bucket raw-data-ingestion-bucket
+docker exec -it localstack awslocal s3api get-bucket-versioning --bucket raw-data-ingestion-bucket
 ```
 
 ## Check Redis
