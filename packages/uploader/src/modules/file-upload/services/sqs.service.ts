@@ -14,6 +14,7 @@ import { ConfigService } from '@nestjs/config';
 import { S3Service, DeclaredFileType } from './s3.service';
 import { IngestJobStatus } from '../../db/entities';
 import { IngestJobService } from '../../db/services';
+import { KafkaProducerService } from '../../kafka';
 import { streamToBuffer } from '../utils';
 
 @Injectable()
@@ -27,6 +28,7 @@ export class SqsService implements OnModuleInit, OnModuleDestroy {
     private readonly configService: ConfigService,
     private readonly s3Service: S3Service,
     private readonly ingestJobService: IngestJobService,
+    private readonly kafkaProducer: KafkaProducerService,
   ) {
     const endpoint = this.configService.getOrThrow('AWS_LOCALSTACK_URL');
     const ingestQueue = this.configService.getOrThrow('AWS_SQS_INGEST_QUEUE');
@@ -102,8 +104,17 @@ export class SqsService implements OnModuleInit, OnModuleDestroy {
 
       const fileHead = await this.s3Service.checkIfFileExists(key);
       if (!fileHead) {
-        this.logger.error(`File not found: ${key}`);
-        // TODO: push message to dead letter queue, register to ingest error table
+        const errorMessage = `File not found: ${key}`;
+        this.logger.error(errorMessage);
+
+        const msg = {
+          id: Date.now(),
+          status: 'error',
+          reason: errorMessage,
+          payload: { data: { key } },
+        };
+        await this.kafkaProducer.publishError(msg);
+
         return;
       }
 
@@ -119,7 +130,15 @@ export class SqsService implements OnModuleInit, OnModuleDestroy {
         this.logger.error(
           `Ingest job not found: [uploadId: ${uploadid}, tenantId: ${tenantid}]`,
         );
-        // TODO: push message to dead letter queue, register to ingest error table
+
+        const msg = {
+          id: Date.now(),
+          status: 'error',
+          reason: 'Ingest job not found',
+          payload: { data: { uploadid, tenantid } },
+        };
+        await this.kafkaProducer.publishError(msg);
+
         return;
       }
 
@@ -152,7 +171,15 @@ export class SqsService implements OnModuleInit, OnModuleDestroy {
         this.logger.error(
           `The file is invalid or does not match declared upload type: [uploadId: ${uploadid}, tenantId: ${tenantid}]`,
         );
-        // TODO: push message to dead letter queue, register to ingest error table
+
+        const msg = {
+          id: Date.now(),
+          status: 'error',
+          reason: 'The file is invalid or does not match declared upload type',
+          payload: { data: { uploadid, tenantid } },
+        };
+        await this.kafkaProducer.publishError(msg);
+
         return;
       }
 
@@ -160,18 +187,37 @@ export class SqsService implements OnModuleInit, OnModuleDestroy {
       ingestJob.sizeBytes = record.s3.object.size;
       await this.ingestJobService.update(ingestJob.id, ingestJob);
 
-
-      const fileBuffer = await streamToBuffer(await this.s3Service.getFileStream(key));
-      const contentSha256 = createHash('sha256').update(fileBuffer).digest('hex');
+      const fileBuffer = await streamToBuffer(
+        await this.s3Service.getFileStream(key),
+      );
+      const contentSha256 = createHash('sha256')
+        .update(fileBuffer)
+        .digest('hex');
       ingestJob.contentSha256 = contentSha256;
 
       // check by content sha256 whether the file is already ingested
-      const existingIngestJob = await this.ingestJobService.findOneByContentSha256(contentSha256);
+      const existingIngestJob =
+        await this.ingestJobService.findOneByContentSha256(contentSha256);
       if (existingIngestJob) {
         this.logger.error(`It looks like a duplicate file: ${contentSha256}`);
-        this.logger.error(`Existing ingest job: ${JSON.stringify(existingIngestJob)}`);
+        this.logger.error(
+          `Existing ingest job: ${JSON.stringify(existingIngestJob)}`,
+        );
         this.logger.error(`File key: ${existingIngestJob.filePath}`);
-        // TODO: push message to dead letter queue, register to ingest error table
+
+        const msg = {
+          id: Date.now(),
+          status: 'error',
+          reason: 'Duplicate file upload',
+          payload: {
+            data: {
+              contentSha256,
+              newFile: key,
+              existingFile: existingIngestJob.filePath,
+            },
+          },
+        };
+        await this.kafkaProducer.publishError(msg);
 
         // mark ingest job as duplicate, leave the file in S3 and ingest job in DB
         ingestJob.status = IngestJobStatus.DUPLICATE;
@@ -180,10 +226,22 @@ export class SqsService implements OnModuleInit, OnModuleDestroy {
         return;
       }
 
+      const msg = {
+        id: Date.now(),
+        status: 'success',
+        payload: {
+          data: {
+            jobId: ingestJob.id,
+            uploadId: ingestJob.uploadId,
+            tenantId: ingestJob.tenantId,
+          },
+        },
+      };
+      await this.kafkaProducer.publishSuccess(msg);
+
+      // set appropriate status and after sending Kafka message
       ingestJob.status = IngestJobStatus.QUEUED;
       await this.ingestJobService.update(ingestJob.id, ingestJob);
-
-      // Kafka message to parser service
 
 
       this.logger.log(`========================================`);
@@ -193,7 +251,18 @@ export class SqsService implements OnModuleInit, OnModuleDestroy {
       this.logger.log(`========================================`);
     } catch (error) {
       this.logger.error(`Error handling SQS message: ${error}`);
-      // TODO: push message to dead letter queue, register to ingest error table
+
+      const msg = {
+        id: Date.now(),
+        status: 'error',
+        reason: 'SQS handle message error',
+        payload: {
+          data: {
+            error,
+          },
+        },
+      };
+      await this.kafkaProducer.publishError(msg);
     }
   }
 }

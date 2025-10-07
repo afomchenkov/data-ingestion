@@ -125,3 +125,19 @@ curl localhost:8181/api/v1/health/liveness
 
 # should output ok all systems 'up'
 ```
+
+## Submit test CSV/JSON file
+
+```sh
+# 1. go to folder ./scripts/file_generator
+# 2. run necessary file generator
+# 3. adjust the file name
+# 4. choose any tenant by running the URL (GET): http://localhost:8181/api/v1/files/tenants
+# 5. run the following URL to get signed URL (POST): http://localhost:8181/api/v1/files/uploads/init
+# 6. upload to S3 via signed URL with the request below
+
+curl -X PUT \
+  -T ./random_data.csv \
+  -H "Content-Type: text/csv" \
+  "signed_url"
+```
