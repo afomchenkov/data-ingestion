@@ -1,19 +1,33 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleInit,
+  OnModuleDestroy,
+} from '@nestjs/common';
 import {
   SQSClient,
   ReceiveMessageCommand,
   DeleteMessageCommand,
 } from '@aws-sdk/client-sqs';
+import { createHash } from 'crypto';
 import { ConfigService } from '@nestjs/config';
+import { S3Service, DeclaredFileType } from './s3.service';
+import { IngestJobStatus } from '../../db/entities';
+import { IngestJobService } from '../../db/services';
+import { streamToBuffer } from '../utils';
 
 @Injectable()
-export class SqsService {
+export class SqsService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(SqsService.name);
   private readonly sqsClient: SQSClient;
   private readonly queueUrl: string;
   private polling = false;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly s3Service: S3Service,
+    private readonly ingestJobService: IngestJobService,
+  ) {
     const endpoint = this.configService.getOrThrow('AWS_LOCALSTACK_URL');
     const ingestQueue = this.configService.getOrThrow('AWS_SQS_INGEST_QUEUE');
 
@@ -30,9 +44,14 @@ export class SqsService {
   }
 
   async onModuleInit() {
+    this.logger.log('Start SQS polling');
     this.logger.log(`SQS queue URL: ${this.queueUrl}`);
-
     this.startPolling();
+  }
+
+  async onModuleDestroy() {
+    this.logger.log('Stop SQS polling');
+    this.polling = false;
   }
 
   private async startPolling() {
@@ -55,9 +74,7 @@ export class SqsService {
         if (Messages) {
           for (const message of Messages) {
             await this.handleMessage(message);
-
-            // TODO: handle message failure, try again later
-
+            // TODO: handle message failure, retry or register to ingest error table
             // delete message after processing
             await this.sqsClient.send(
               new DeleteMessageCommand({
@@ -83,14 +100,100 @@ export class SqsService {
       const bucket = record.s3.bucket.name;
       const key = decodeURIComponent(record.s3.object.key.replace(/\+/g, ' '));
 
-      // do file validation, check if valid CSV/JSON/Parquet and fire Kafka message to parser service
+      const fileHead = await this.s3Service.checkIfFileExists(key);
+      if (!fileHead) {
+        this.logger.error(`File not found: ${key}`);
+        // TODO: push message to dead letter queue, register to ingest error table
+        return;
+      }
+
+      const metadata = fileHead.Metadata || {};
+      this.logger.log(`Metadata: ${JSON.stringify(metadata)}`);
+
+      const { uploadid, tenantid } = metadata;
+      const ingestJob = await this.ingestJobService.findOneByUpload(
+        uploadid,
+        tenantid,
+      );
+      if (!ingestJob) {
+        this.logger.error(
+          `Ingest job not found: [uploadId: ${uploadid}, tenantId: ${tenantid}]`,
+        );
+        // TODO: push message to dead letter queue, register to ingest error table
+        return;
+      }
+
+      this.logger.log(`Ingest job found: ${JSON.stringify(ingestJob)}`);
+
+      if (ingestJob.status !== IngestJobStatus.INITIATED) {
+        this.logger.error(
+          `The file has already been uploaded, not possible to process again: [uploadId: ${uploadid}, tenantId: ${tenantid}]`,
+        );
+
+        // remove duplicate file version from S3
+        // TODO: handle files multi versioning
+        await this.s3Service.deleteFileVersion(key, record.s3.object.versionId);
+        return;
+      }
+
+      // mark ingest job as processing
+      ingestJob.status = IngestJobStatus.PROCESSING;
+      await this.ingestJobService.update(ingestJob.id, ingestJob);
+      const fileType = ingestJob.fileType as DeclaredFileType;
+      const isValidFileType = await this.s3Service.isValidateFileType(
+        key,
+        fileType,
+      );
+
+      // check whether the file is valid and matches declared upload type
+      if (!isValidFileType) {
+        ingestJob.status = IngestJobStatus.FAILED;
+        await this.ingestJobService.update(ingestJob.id, ingestJob);
+        this.logger.error(
+          `The file is invalid or does not match declared upload type: [uploadId: ${uploadid}, tenantId: ${tenantid}]`,
+        );
+        // TODO: push message to dead letter queue, register to ingest error table
+        return;
+      }
+
+      ingestJob.status = IngestJobStatus.UPLOADED;
+      ingestJob.sizeBytes = record.s3.object.size;
+      await this.ingestJobService.update(ingestJob.id, ingestJob);
+
+
+      const fileBuffer = await streamToBuffer(await this.s3Service.getFileStream(key));
+      const contentSha256 = createHash('sha256').update(fileBuffer).digest('hex');
+      ingestJob.contentSha256 = contentSha256;
+
+      // check by content sha256 whether the file is already ingested
+      const existingIngestJob = await this.ingestJobService.findOneByContentSha256(contentSha256);
+      if (existingIngestJob) {
+        this.logger.error(`It looks like a duplicate file: ${contentSha256}`);
+        this.logger.error(`Existing ingest job: ${JSON.stringify(existingIngestJob)}`);
+        this.logger.error(`File key: ${existingIngestJob.filePath}`);
+        // TODO: push message to dead letter queue, register to ingest error table
+
+        // mark ingest job as duplicate, leave the file in S3 and ingest job in DB
+        ingestJob.status = IngestJobStatus.DUPLICATE;
+        await this.ingestJobService.update(ingestJob.id, ingestJob);
+
+        return;
+      }
+
+      ingestJob.status = IngestJobStatus.QUEUED;
+      await this.ingestJobService.update(ingestJob.id, ingestJob);
+
+      // Kafka message to parser service
+
 
       this.logger.log(`========================================`);
+      this.logger.log(`The file is valid and match declared upload type`);
       this.logger.log(`File Body: ${JSON.stringify(body)}`);
       this.logger.log(`File uploaded: s3://${bucket}/${key}`);
       this.logger.log(`========================================`);
     } catch (error) {
       this.logger.error(`Error handling SQS message: ${error}`);
+      // TODO: push message to dead letter queue, register to ingest error table
     }
   }
 }

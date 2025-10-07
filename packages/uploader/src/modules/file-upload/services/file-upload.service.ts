@@ -1,6 +1,7 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
-import { S3Service } from './s3.service';
-import { TenantService } from '../../db/services';
+import { S3Service, UploadedFileVersion } from './s3.service';
+import { TenantService, IngestJobService } from '../../db/services';
+import { IngestJobEntity } from '../../db/entities';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface UploadMetadata {
@@ -10,10 +11,7 @@ export interface UploadMetadata {
   presignedUrl: string;
 }
 
-export interface AllFilesResponse {
-  files: string[];
-  directories: string[];
-}
+
 
 const PRESIGNED_URL_EXPIRATION_TIME = 300; // 5 minutes
 
@@ -24,14 +22,15 @@ export class FileUploadService {
   constructor(
     private readonly s3Service: S3Service,
     private readonly tenantService: TenantService,
+    private readonly ingestJobService: IngestJobService,
   ) {}
 
-  async getAllFiles(): Promise<AllFilesResponse> {
-    return this.s3Service.listAllKeys();
+  async getFileVersions(key: string): Promise<UploadedFileVersion[]> {
+    return this.s3Service.getFileVersions(key);
   }
 
-  async getFileVersions(key: string): Promise<any[]> {
-    return this.s3Service.getFileVersions(key);
+  async getUploadStatus(uploadId: string): Promise<IngestJobEntity | null> {
+    return this.ingestJobService.findOneByUploadId(uploadId);
   }
 
   async initiateUpload(
@@ -43,10 +42,6 @@ export class FileUploadService {
     const { year, month, day } = this.getDatePath();
     const s3Key = `/${year}/${month}/${day}/tenant/${tenantId}/upload/${uploadId}/${fileName}.${fileType}`;
 
-    if (await this.s3Service.checkIfFileExists(s3Key)) {
-      this.logger.warn(`File already exists: ${s3Key}`);
-    }
-
     const tenant = await this.tenantService.findOne(tenantId);
     if (!tenant) {
       throw new BadRequestException('Tenant not found');
@@ -54,8 +49,21 @@ export class FileUploadService {
 
     const presignedUrl = await this.s3Service.generatePresignedUploadUrl(
       s3Key,
+      uploadId,
+      tenantId,
+      fileType,
       PRESIGNED_URL_EXPIRATION_TIME,
     );
+
+    // create ingest job with default status INITIATED
+    // TODO: if user does not use generated presigned url, handle job status update to STALE
+    await this.ingestJobService.create({
+      tenantId,
+      uploadId,
+      fileName,
+      fileType,
+      filePath: s3Key,
+    });
 
     this.logger.log(`Upload initiated: ${uploadId}`);
     this.logger.log(`S3 Key: ${s3Key}`);

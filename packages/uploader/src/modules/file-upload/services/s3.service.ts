@@ -5,6 +5,7 @@ import {
   PutObjectCommand,
   GetObjectCommand,
   HeadObjectCommand,
+  HeadObjectCommandOutput,
   S3ServiceException,
   ListObjectsV2Command,
   ListObjectVersionsCommand,
@@ -17,9 +18,24 @@ import { Readable } from 'stream';
 import { fileTypeFromBuffer } from 'file-type';
 import { streamToBuffer } from '../utils';
 
-const ALLOWED_TYPES = ['text/csv', 'application/json'];
+export const ALLOWED_TYPES = ['text/csv', 'application/json'];
 
-type DeclaredFileType = 'csv' | 'json';
+export type DeclaredFileType = 'csv' | 'json';
+
+export interface AllFilesResult {
+  files: string[];
+  directories: string[];
+}
+
+export interface UploadedFileVersion {
+  key: string | undefined;
+  checksumType: string | undefined;
+  checksumAlgorithm: string[] | undefined;
+  versionId: string | undefined;
+  isLatest: boolean | undefined;
+  size: number | undefined; // number in bytes
+  lastModified: Date | undefined;
+}
 
 // TODO: use ClamAV antivirus engine to scan for viruses
 
@@ -50,13 +66,20 @@ export class S3Service {
 
   async generatePresignedUploadUrl(
     key: string,
+    uploadId: string,
+    tenantId: string,
+    fileType: string,
     expiresIn = 3600, // default to 1 hour
   ): Promise<string> {
     const command = new PutObjectCommand({
       Bucket: this.bucketName,
       Key: key,
-      // ContentType: contentType,
       ACL: 'private',
+      Metadata: {
+        uploadId,
+        tenantId,
+        fileType,
+      },
     });
     const presignedUrl = await getSignedUrl(this.s3Client, command, {
       expiresIn,
@@ -84,7 +107,7 @@ export class S3Service {
     return presignedPost;
   }
 
-  async getFileVersions(key: string): Promise<any[]> {
+  async getFileVersions(key: string): Promise<UploadedFileVersion[]> {
     const command = new ListObjectVersionsCommand({
       Bucket: this.bucketName,
       Prefix: key, // full path or prefix
@@ -167,18 +190,20 @@ export class S3Service {
     }
   }
 
-  async checkIfFileExists(s3Key: string): Promise<boolean> {
+  async checkIfFileExists(
+    s3Key: string,
+  ): Promise<HeadObjectCommandOutput | null> {
     try {
       this.logger.log(`Checking if file exists: ${s3Key}`);
 
-      await this.s3Client.send(
+      const head = await this.s3Client.send(
         new HeadObjectCommand({
           Bucket: this.bucketName,
           Key: s3Key,
         }),
       );
 
-      return true;
+      return head;
     } catch (err) {
       this.logger.error(
         `Error checking if file exists: ${s3Key} - ${JSON.stringify(err)}`,
@@ -186,18 +211,16 @@ export class S3Service {
 
       if (err instanceof S3ServiceException) {
         if (err.name === 'NotFound' || err.$metadata?.httpStatusCode === 404) {
-          return false;
+          return null;
         }
         throw err;
       }
 
-      return true;
+      return null;
     }
   }
 
-  async listAllKeys(
-    prefix?: string,
-  ): Promise<{ files: string[]; directories: string[] }> {
+  async listAllKeys(prefix?: string): Promise<AllFilesResult> {
     const files: string[] = [];
     const directories: Set<string> = new Set();
     let continuationToken: string | undefined;
@@ -263,6 +286,29 @@ export class S3Service {
     }
 
     this.logger.log(`File deleted: ${s3Key}`);
+  }
+
+  async deleteFileVersion(s3Key: string, versionId: string): Promise<void> {
+    this.logger.log(
+      `Deleting file version: ${s3Key} (versionId: ${versionId})`,
+    );
+
+    try {
+      await this.s3Client.send(
+        new DeleteObjectCommand({
+          Bucket: this.bucketName,
+          Key: s3Key,
+          VersionId: versionId,
+        }),
+      );
+
+      this.logger.log(`Deleted version ${versionId} of file ${s3Key}`);
+    } catch (err) {
+      this.logger.error(
+        `Error deleting version ${versionId} of ${s3Key}: ${JSON.stringify(err)}`,
+      );
+      throw err;
+    }
   }
 
   async uploadChunk(key: string, data: Buffer): Promise<void> {
