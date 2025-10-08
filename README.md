@@ -65,6 +65,17 @@ docker exec -it kafka bash
 
 # verify topics
 kafka-topics --list --bootstrap-server localhost:9092
+
+# check ingest messages
+kafka-console-consumer \
+  --bootstrap-server localhost:9092 \
+  --topic data_ingestion \
+  --from-beginning
+
+# publish test message
+kafka-console-producer \
+  --bootstrap-server localhost:9092 \
+  --topic data_ingestion
 ```
 
 ## Check Grafana logs
