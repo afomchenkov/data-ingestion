@@ -66,16 +66,39 @@ docker exec -it kafka bash
 # verify topics
 kafka-topics --list --bootstrap-server localhost:9092
 
+# list consumer groups
+kafka-consumer-groups --bootstrap-server localhost:9092 --list
+
+# list topics
+kafka-topics --bootstrap-server localhost:9092 --list
+
+# describe data_ingestion topic
+kafka-topics --bootstrap-server localhost:9092 \
+  --describe --topic data_ingestion
+
 # check ingest messages
 kafka-console-consumer \
   --bootstrap-server localhost:9092 \
   --topic data_ingestion \
   --from-beginning
 
+# check last 10 messages
+kafka-console-consumer --bootstrap-server localhost:9092 \
+  --topic data_ingestion --from-beginning --max-messages 10
+
 # publish test message
 kafka-console-producer \
   --bootstrap-server localhost:9092 \
   --topic data_ingestion
+
+# reset consumer group
+kafka-consumer-groups --bootstrap-server localhost:9092 \
+  --group data-ingestion-consumer-group --reset-offsets \
+  --to-earliest --all-topics --execute
+
+# created consumer groups
+# data-ingestion-producer-group-client
+# data-ingestion-consumer-group-server
 ```
 
 ## Check Grafana logs

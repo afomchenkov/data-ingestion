@@ -151,7 +151,7 @@ export class SqsService implements OnModuleInit, OnModuleDestroy {
 
       if (ingestJob.status !== IngestJobStatus.INITIATED) {
         this.logger.error(
-          `The file has already been uploaded, not possible to process again: [uploadId: ${uploadid}, tenantId: ${tenantid}]`,
+          `The file has already been uploaded, not possible to process again the same signed URL: [uploadId: ${uploadid}, tenantId: ${tenantid}]`,
         );
 
         // remove duplicate file version from S3
@@ -243,11 +243,11 @@ export class SqsService implements OnModuleInit, OnModuleDestroy {
         },
       };
       await this.kafkaProducer.publishSuccess(msg);
+      this.logger.log(`Kafka message published: ${JSON.stringify(msg)}`);
 
       // set appropriate status and after sending Kafka message
       ingestJob.status = IngestJobStatus.QUEUED;
       await this.ingestJobService.update(ingestJob.id, ingestJob);
-
 
       this.logger.log(`========================================`);
       this.logger.log(`The file is valid and match declared upload type`);
@@ -268,6 +268,7 @@ export class SqsService implements OnModuleInit, OnModuleDestroy {
         },
       };
       await this.kafkaProducer.publishError(msg);
+      this.logger.error(`Kafka error message published: ${JSON.stringify(msg)}`);
     }
   }
 }

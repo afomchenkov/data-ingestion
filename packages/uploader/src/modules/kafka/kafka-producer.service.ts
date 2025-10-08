@@ -51,7 +51,6 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
     } catch (err) {
       this.logger.error('Publish failed, retrying...');
       this.logger.error(err);
-      // retry after 2 seconds if leadership election is in progress
       await new Promise((res) => setTimeout(res, 2000));
       return  this.kafkaClient.emit(this.errorTopic, { value: message });
     }
