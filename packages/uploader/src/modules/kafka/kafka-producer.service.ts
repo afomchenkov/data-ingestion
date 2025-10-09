@@ -7,8 +7,22 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ClientKafka } from '@nestjs/microservices';
+import {
+  NewFileUploadSuccessEvent,
+  FileNotFoundErrorEvent,
+  DuplicateUploadErrorEvent,
+  FileTypeErrorEvent,
+  SQSErrorEvent,
+  IngestJobNotFoundErrorEvent,
+} from './events';
 
-// TODO: define message schema and types
+export type KafkaSuccessMessage = NewFileUploadSuccessEvent;
+export type KafkaErrorMessage =
+  | FileNotFoundErrorEvent
+  | DuplicateUploadErrorEvent
+  | FileTypeErrorEvent
+  | SQSErrorEvent
+  | IngestJobNotFoundErrorEvent;
 
 @Injectable()
 export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
@@ -33,31 +47,31 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
     await this.kafkaClient.connect();
   }
 
-  async publishSuccess(message: any) {
+  async publishSuccess(message: KafkaSuccessMessage) {
     try {
-      return await this.kafkaClient.emit(this.successTopic, { value: message });
+      return await this.kafkaClient.emit(this.successTopic, message);
     } catch (err) {
       this.logger.error('Publish failed, retrying...');
       this.logger.error(err);
       // retry after 2 seconds if leadership election is in progress
       await new Promise((res) => setTimeout(res, 2000));
-      return this.kafkaClient.emit(this.successTopic, { value: message });
+      return this.kafkaClient.emit(this.successTopic, message);
     }
   }
 
-  async publishError(message: any) {
+  async publishError(message: KafkaErrorMessage) {
     try {
-      return await this.kafkaClient.emit(this.errorTopic, { value: message });
+      return await this.kafkaClient.emit(this.errorTopic, message);
     } catch (err) {
       this.logger.error('Publish failed, retrying...');
       this.logger.error(err);
       await new Promise((res) => setTimeout(res, 2000));
-      return  this.kafkaClient.emit(this.errorTopic, { value: message });
+      return this.kafkaClient.emit(this.errorTopic, message);
     }
   }
 
   async publish(topic: string, message: any) {
-    return this.kafkaClient.emit(topic, { value: message });
+    return this.kafkaClient.emit(topic, message);
   }
 
   async onModuleDestroy() {

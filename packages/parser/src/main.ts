@@ -77,7 +77,7 @@ async function bootstrap() {
         brokers: [configService.getOrThrow<string>('KAFKA_BROKER_URL')],
       },
       consumer: {
-        groupId: 'data-ingestion-consumer-group', // configService.getOrThrow<string>('KAFKA_CONSUMER_GROUP'),
+        groupId: configService.getOrThrow<string>('KAFKA_CONSUMER_GROUP'),
       },
       // Start from beginning to test
       subscribe: {
