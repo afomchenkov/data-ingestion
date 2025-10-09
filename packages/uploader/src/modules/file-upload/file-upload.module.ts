@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { DBModule } from '../db/db.module';
+import { DBModule } from '@data-ingestion/shared';
 import { KafkaModule } from '../kafka/kafka.module';
 import { FileUploadController } from './file-upload.controller';
 import { FileUploadService, S3Service, SqsFileUploadService } from './services';

@@ -1,7 +1,10 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { S3Service, UploadedFileVersion } from './s3.service';
-import { TenantService, IngestJobService } from '../../db/services';
-import { IngestJobEntity } from '../../db/entities';
+import {
+  TenantService,
+  IngestJobService,
+  IngestJobEntity,
+} from '@data-ingestion/shared';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface UploadMetadata {
@@ -10,8 +13,6 @@ export interface UploadMetadata {
   s3Key: string;
   presignedUrl: string;
 }
-
-
 
 const PRESIGNED_URL_EXPIRATION_TIME = 300; // 5 minutes
 

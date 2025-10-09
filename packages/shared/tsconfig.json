@@ -1,16 +1,16 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
-    "baseUrl": "src",
-    "inlineSourceMap": false,
-    "lib": ["esnext", "DOM"],
-    "listEmittedFiles": false,
-    "listFiles": false,
-    "noFallthroughCasesInSwitch": true,
+    "baseUrl": ".",
+    "emitDecoratorMetadata": true,
+    "declaration": true,
+    "declarationMap": true,
+    "experimentalDecorators": true,
+    "module": "CommonJS",
     "outDir": "dist",
-    "traceResolution": false
-  },
-  "compileOnSave": false,
-  "include": ["src"]
+    "paths": {
+      "~/*": ["src/*"]
+    },
+    "strictPropertyInitialization": false
+  }
 }

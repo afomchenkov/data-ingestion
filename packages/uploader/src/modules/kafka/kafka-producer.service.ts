@@ -14,7 +14,7 @@ import {
   FileTypeErrorEvent,
   SQSErrorEvent,
   IngestJobNotFoundErrorEvent,
-} from './events';
+} from '@data-ingestion/shared';
 
 export type KafkaSuccessMessage = NewFileUploadSuccessEvent;
 export type KafkaErrorMessage =

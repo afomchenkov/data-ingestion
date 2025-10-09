@@ -9,8 +9,7 @@ import {
   PingIndicatorService,
 } from './health';
 import { FileUploadModule } from './file-upload/file-upload.module';
-import { DBModule } from './db/db.module';
-import { DbSettingsService } from './db/db-settings.service';
+import { DBModule, DbSettingsService } from '@data-ingestion/shared';
 import { KafkaModule } from './kafka/kafka.module';
 
 @Module({

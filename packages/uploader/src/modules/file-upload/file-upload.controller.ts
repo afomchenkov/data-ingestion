@@ -1,7 +1,7 @@
 import { Controller, Post, Body, Get, Param } from '@nestjs/common';
 import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FileUploadService } from './services/file-upload.service';
-import { TenantService } from '../db/services';
+import { TenantService } from '@data-ingestion/shared';
 import {
   InitiateUploadDto,
   IngestJobDto,

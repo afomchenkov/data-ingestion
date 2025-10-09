@@ -12,18 +12,18 @@ import {
 import { createHash } from 'crypto';
 import { ConfigService } from '@nestjs/config';
 import { S3Service, DeclaredFileType } from './s3.service';
-import { IngestJobStatus } from '../../db/entities';
-import { IngestJobService } from '../../db/services';
-import { KafkaProducerService } from '../../kafka';
-import { streamToBuffer } from '../utils';
 import {
+  IngestJobStatus,
+  IngestJobService,
   NewFileUploadSuccessEvent,
   FileNotFoundErrorEvent,
   DuplicateUploadErrorEvent,
   FileTypeErrorEvent,
   SQSErrorEvent,
   IngestJobNotFoundErrorEvent,
-} from '../../kafka/events';
+} from '@data-ingestion/shared';
+import { KafkaProducerService } from '../../kafka';
+import { streamToBuffer } from '../utils';
 
 @Injectable()
 export class SqsFileUploadService implements OnModuleInit, OnModuleDestroy {
@@ -138,7 +138,7 @@ export class SqsFileUploadService implements OnModuleInit, OnModuleDestroy {
         uploadid,
         tenantid,
       );
-      
+
       if (!ingestJob) {
         const errorMessage = `Ingest job not found: [uploadId: ${uploadid}, tenantId: ${tenantid}]`;
         this.logger.error(errorMessage);
