@@ -10,32 +10,57 @@ CREATE TABLE tenant (
     updated_at timestamptz DEFAULT now()
 );
 
+DROP TABLE IF EXISTS data_schema CASCADE;
+CREATE TABLE data_schema (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL UNIQUE,
+    description TEXT,
+    tenant_id uuid REFERENCES tenant(id),
+    schema JSONB NOT NULL,
+    file_type TEXT NOT NULL CHECK (file_type IN ('csv', 'ndjson', 'json')),
+    delimiter TEXT DEFAULT ',',
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now()
+);
+
 DROP TABLE IF EXISTS ingest_job CASCADE;
 CREATE TABLE ingest_job (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id uuid REFERENCES tenant(id),
     upload_id uuid,
     filename text,
+    data_name text,
+    schema_id uuid REFERENCES data_schema(id),
     file_type text,
     file_path text,
-    status text CHECK (status IN ('uploaded','processing','queued','initiated','complete','failed','stale','duplicate')) DEFAULT 'initiated',
+    status text CHECK (
+        status IN (
+            'uploaded',
+            'processing',
+            'queued',
+            'initiated',
+            'complete',
+            'failed',
+            'stale',
+            'duplicate'
+        )
+    ) DEFAULT 'initiated',
     content_sha256 text,
     size_bytes bigint,
     created_at timestamptz DEFAULT now(),
     updated_at timestamptz DEFAULT now()
 );
 
+-- canonical table for per-row parsing
 DROP TABLE IF EXISTS processed_data CASCADE;
 CREATE TABLE processed_data (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id uuid REFERENCES tenant(id),
-    filename text,
-    file_type text,
-    file_version_id text,
-    payload jsonb NOT NULL,
-    source_timestamp timestamptz,
+    data_name text NOT NULL,
+    schema_id uuid REFERENCES data_schema(id),
+    data jsonb NOT NULL,
     ingest_job_id uuid REFERENCES ingest_job(id),
-    version bigint DEFAULT 1,
+    content_hash TEXT,
     created_at timestamptz DEFAULT now(),
     updated_at timestamptz DEFAULT now()
 );
@@ -56,22 +81,20 @@ CREATE TABLE ingest_error (
 
 DROP TABLE IF EXISTS ingest_history CASCADE;
 CREATE TABLE ingest_history (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  tenant_id text,
-  source_ts timestamptz,
-  ingest_job_id uuid REFERENCES ingest_job(id),
-  ingest_error_id uuid REFERENCES ingest_error(id),
-  processed_data_id uuid REFERENCES processed_data(id),
-  event_name text,
-  message text,
-  version integer,
-  created_at timestamptz DEFAULT now()
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id uuid REFERENCES tenant(id),
+    source_ts timestamptz,
+    ingest_job_id uuid REFERENCES ingest_job(id),
+    ingest_error_id uuid REFERENCES ingest_error(id),
+    processed_data_id uuid REFERENCES processed_data(id),
+    event_name text,
+    message text,
+    version integer,
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now()
 );
 
 CREATE INDEX ON ingest_job (content_sha256);
 CREATE INDEX ON ingest_job (tenant_id);
-
-CREATE INDEX ON processed_data (tenant_id);
-CREATE INDEX ON processed_data (source_timestamp);
-
--- CREATE INDEX ON processed_data ((payload->>'status'));
+CREATE INDEX ON processed_data (content_hash);
+CREATE INDEX ON processed_data (data_name);

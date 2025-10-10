@@ -6,6 +6,7 @@ import {
   IngestJobEntity,
   IngestErrorEntity,
   ProcessedDataEntity,
+  DataSchemaEntity,
 } from './entities';
 import {
   RawQueryService,
@@ -13,6 +14,7 @@ import {
   IngestJobService,
   IngestErrorService,
   ProcessedDataService,
+  DataSchemaService,
 } from './services';
 
 const entities = [
@@ -20,6 +22,7 @@ const entities = [
   IngestJobEntity,
   IngestErrorEntity,
   ProcessedDataEntity,
+  DataSchemaEntity,
 ];
 
 const services = [
@@ -29,6 +32,7 @@ const services = [
   IngestJobService,
   IngestErrorService,
   ProcessedDataService,
+  DataSchemaService,
 ];
 
 @Module({

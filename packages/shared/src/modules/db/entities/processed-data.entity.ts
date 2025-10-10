@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { TenantEntity } from './tenant.entity';
 import { IngestJobEntity } from './ingest-job.entity';
 import { BaseEntity } from './base.entity';
@@ -12,23 +12,17 @@ export class ProcessedDataEntity extends BaseEntity {
   @JoinColumn({ name: 'tenant_id' })
   tenant: TenantEntity;
 
-  @Column({ type: 'text', nullable: true, name: 'filename' })
-  filename: string | null;
+  @Column({ type: 'text', nullable: true, name: 'data_name' })
+  dataName: string;
 
-  @Column({ type: 'text', nullable: true, name: 'file_type' })
-  fileType: string | null;
+  @Column({ type: 'uuid', name: 'schema_id', nullable: true })
+  schemaId: string | null;
 
-  @Column({ type: 'text', nullable: true, name: 'file_version_id' })
-  fileVersionId: string | null;
+  @Column({ type: 'text', name: 'content_hash' })
+  contentHash: string;
 
-  @Column({ type: 'text', name: 'row_content_sha256' })
-  rowContentSha256: string;
-
-  @Column({ type: 'jsonb', name: 'payload' })
-  payload: Record<string, any>;
-
-  @Column({ type: 'timestamptz', nullable: true, name: 'source_timestamp' })
-  sourceTimestamp: Date | null;
+  @Column({ type: 'jsonb', name: 'data' })
+  data: Record<string, any>;
 
   @Column({ type: 'uuid', name: 'ingest_job_id', nullable: true })
   ingestJobId: string | null;
@@ -36,7 +30,4 @@ export class ProcessedDataEntity extends BaseEntity {
   @ManyToOne(() => IngestJobEntity, { onDelete: 'SET NULL' })
   @JoinColumn({ name: 'ingest_job_id' })
   ingestJob: IngestJobEntity;
-
-  @Column({ type: 'bigint', default: 1, name: 'version' })
-  version: string;
 }

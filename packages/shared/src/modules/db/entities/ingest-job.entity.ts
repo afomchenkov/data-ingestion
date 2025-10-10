@@ -29,6 +29,12 @@ export class IngestJobEntity extends BaseEntity {
   @Column({ type: 'text', nullable: true, name: 'file_type' })
   fileType: string | null;
 
+  @Column({ type: 'text', nullable: true, name: 'data_name' })
+  dataName: string | null;
+
+  @Column({ type: 'uuid', nullable: true, name: 'schema_id' })
+  schemaId: string | null;
+  
   @Column({ type: 'text', nullable: true, name: 'file_path' })
   filePath: string | null;
 
