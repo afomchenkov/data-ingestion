@@ -9,11 +9,12 @@ import {
   IngestJobStatus,
   IngestJobService,
   ProcessedDataEntity,
+  ProcessedDataService,
 } from '@data-ingestion/shared';
-
 export abstract class BaseDataService {
   protected abstract readonly logger: Logger;
   protected abstract readonly ingestJobService: IngestJobService;
+  protected abstract readonly processedDataService: ProcessedDataService;
 
   abstract processFile(
     ingestJob: IngestJobEntity,
@@ -58,6 +59,26 @@ export abstract class BaseDataService {
     entity.contentHash = this.generateHash(data);
 
     return entity;
+  }
+
+  protected async saveBatch(
+    records: any[],
+    ingestJob: IngestJobEntity,
+    uniqueField: string,
+  ): Promise<void> {
+    if (records.length === 0) {
+      return;
+    }
+
+    this.logger.log(`Inserting batch of: ${records.length} rows`);
+
+    await this.processedDataService.bulkUpsert(
+      records.map((record) =>
+        this.createEntity(record, ingestJob, uniqueField),
+      ),
+    );
+
+    this.logger.log(`Inserted batch of: ${records.length} rows`);
   }
 
   protected getParser(format: string) {

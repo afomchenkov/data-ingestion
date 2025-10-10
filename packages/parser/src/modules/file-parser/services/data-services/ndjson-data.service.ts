@@ -2,7 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   IngestJobEntity,
   IngestJobService,
-  ProcessedDataEntity,
   ProcessedDataService,
 } from '@data-ingestion/shared';
 import { BaseDataService } from './base-data.service';
@@ -24,16 +23,20 @@ export class NDJSONDataService extends BaseDataService {
   }
 
   async processFile(ingestJob: IngestJobEntity) {
-    const { filePath, schemaId, tenantId } = ingestJob;
+    const { filePath, schemaId } = ingestJob;
 
     this.logger.log(`Processing NDJSON file for ingest job: ${ingestJob.id}`);
 
     if (!filePath) {
-      throw new Error('File path is required');
+      this.logger.error('File path is required');
+      this.failJob(ingestJob);
+      return;
     }
 
     if (!schemaId) {
-      throw new Error('Schema ID is required');
+      this.logger.error('Schema ID is required');
+      this.failJob(ingestJob);
+      return;
     }
 
     const { uniqueField } =
@@ -86,25 +89,5 @@ export class NDJSONDataService extends BaseDataService {
     this.logger.log(`Total lines: ${totalLines}`);
 
     this.completeJob(ingestJob);
-  }
-
-  private async saveBatch(
-    records: any[],
-    ingestJob: IngestJobEntity,
-    uniqueField: string,
-  ): Promise<void> {
-    if (records.length === 0) {
-      return;
-    }
-
-    this.logger.log(`Inserting batch of: ${records.length} rows`);
-
-    await this.processedDataService.bulkUpsert(
-      records.map((record) =>
-        this.createEntity(record, ingestJob, uniqueField),
-      ),
-    );
-
-    this.logger.log(`Inserted batch of: ${records.length} rows`);
   }
 }
