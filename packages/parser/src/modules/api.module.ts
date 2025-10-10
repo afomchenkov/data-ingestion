@@ -13,7 +13,15 @@ import {
   FileParserController,
   KafkaConsumerController,
 } from './file-parser/controllers';
-import { IngestDataService } from './file-parser/services';
+import {
+  IngestService,
+  FileParserService,
+  S3Service,
+  CSVDataService,
+  JSONDataService,
+  NDJSONDataService,
+  SchemaValidationService,
+} from './file-parser/services';
 
 @Module({
   imports: [
@@ -34,6 +42,16 @@ import { IngestDataService } from './file-parser/services';
     FileParserController,
     KafkaConsumerController,
   ],
-  providers: [HealthService, PingIndicatorService, IngestDataService],
+  providers: [
+    HealthService,
+    PingIndicatorService,
+    IngestService,
+    FileParserService,
+    S3Service,
+    CSVDataService,
+    JSONDataService,
+    NDJSONDataService,
+    SchemaValidationService,
+  ],
 })
 export class ApiModule {}

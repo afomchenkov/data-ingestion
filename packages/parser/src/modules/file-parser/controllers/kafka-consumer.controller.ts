@@ -5,29 +5,14 @@ import {
   Ctx,
   KafkaContext,
 } from '@nestjs/microservices';
-import {
-  NewFileUploadSuccessEvent,
-  FileNotFoundErrorEvent,
-  DuplicateUploadErrorEvent,
-  FileTypeErrorEvent,
-  SQSErrorEvent,
-  IngestJobNotFoundErrorEvent,
-} from '@data-ingestion/shared';
-import { IngestDataService } from '../services/ingest-data.service';
-
-export type KafkaSuccessMessage = NewFileUploadSuccessEvent;
-export type KafkaErrorMessage =
-  | FileNotFoundErrorEvent
-  | DuplicateUploadErrorEvent
-  | FileTypeErrorEvent
-  | SQSErrorEvent
-  | IngestJobNotFoundErrorEvent;
+import { IngestService } from '../services';
+import { KafkaSuccessMessage, KafkaErrorMessage } from '../services';
 
 @Controller()
 export class KafkaConsumerController {
   private readonly logger = new Logger(KafkaConsumerController.name);
 
-  constructor(private readonly ingestService: IngestDataService) {}
+  constructor(private readonly ingestService: IngestService) {}
 
   @EventPattern('data_ingestion')
   handleSuccess(
@@ -35,6 +20,7 @@ export class KafkaConsumerController {
     @Ctx() context: KafkaContext,
   ) {
     this.logger.log(`Kafka success message received`);
+    this.logger.log(`Message: ${JSON.stringify(message)}`);
 
     this.ingestService.handleSuccess(message, context);
   }
@@ -45,6 +31,7 @@ export class KafkaConsumerController {
     @Ctx() context: KafkaContext,
   ) {
     this.logger.log(`Kafka error message received`);
+    this.logger.log(`Message: ${JSON.stringify(message)}`);
 
     this.ingestService.handleError(message, context);
   }
