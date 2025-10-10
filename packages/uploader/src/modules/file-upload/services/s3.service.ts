@@ -18,9 +18,9 @@ import { Readable } from 'stream';
 import { fileTypeFromBuffer } from 'file-type';
 import { streamToBuffer } from '../utils';
 
-export const ALLOWED_TYPES = ['text/csv', 'application/json'];
+export const ALLOWED_TYPES = ['text/csv', 'application/json', 'application/x-ndjson'];
 
-export type DeclaredFileType = 'csv' | 'json';
+export type DeclaredFileType = 'csv' | 'json' | 'ndjson';
 
 export interface AllFilesResult {
   files: string[];
@@ -135,7 +135,7 @@ export class S3Service {
     return versions;
   }
 
-  async isValidateFileType(
+  async isValidFileType(
     s3Key: string,
     declaredFileType: DeclaredFileType,
   ): Promise<string | null> {

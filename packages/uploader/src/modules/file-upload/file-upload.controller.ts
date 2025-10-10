@@ -1,7 +1,7 @@
 import { Controller, Post, Body, Get, Param } from '@nestjs/common';
 import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FileUploadService } from './services/file-upload.service';
-import { TenantService } from '@data-ingestion/shared';
+import { TenantService, DataSchemaService } from '@data-ingestion/shared';
 import {
   InitiateUploadDto,
   IngestJobDto,
@@ -9,6 +9,7 @@ import {
   TenantResponseDto,
   CreateTenantDto,
   UploadedFileVersionDto,
+  DataSchemaResponseDto,
 } from './dto';
 
 @ApiTags('Files Upload')
@@ -17,6 +18,7 @@ export class FileUploadController {
   constructor(
     private readonly fileUploadService: FileUploadService,
     private readonly tenantService: TenantService,
+    private readonly dataSchemaService: DataSchemaService,
   ) {}
 
   @Post('/uploads/init')
@@ -32,14 +34,24 @@ export class FileUploadController {
 
   @Get('/uploads/:uploadId')
   @ApiOperation({ summary: 'Get upload job status' })
-  async getUploadStatus(@Param('uploadId') uploadId: string): Promise<IngestJobDto | null> {
+  async getUploadStatus(
+    @Param('uploadId') uploadId: string,
+  ): Promise<IngestJobDto | null> {
     return this.fileUploadService.getUploadStatus(uploadId);
   }
 
   @Get('/versions')
   @ApiOperation({ summary: 'Get file versions' })
-  async getFileVersions(@Param('key') key: string): Promise<UploadedFileVersionDto[]> {
+  async getFileVersions(
+    @Param('key') key: string,
+  ): Promise<UploadedFileVersionDto[]> {
     return this.fileUploadService.getFileVersions(key);
+  }
+
+  @Get('/data-schemas')
+  @ApiOperation({ summary: 'Get all data schemas' })
+  async getAllDataSchemas(): Promise<DataSchemaResponseDto[]> {
+    return this.dataSchemaService.findAll();
   }
 
   @Post('/tenants')

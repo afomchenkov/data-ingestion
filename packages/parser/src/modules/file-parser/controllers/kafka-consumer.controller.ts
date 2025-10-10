@@ -13,6 +13,7 @@ import {
   SQSErrorEvent,
   IngestJobNotFoundErrorEvent,
 } from '@data-ingestion/shared';
+import { IngestDataService } from '../services/ingest-data.service';
 
 export type KafkaSuccessMessage = NewFileUploadSuccessEvent;
 export type KafkaErrorMessage =
@@ -26,6 +27,8 @@ export type KafkaErrorMessage =
 export class KafkaConsumerController {
   private readonly logger = new Logger(KafkaConsumerController.name);
 
+  constructor(private readonly ingestService: IngestDataService) {}
+
   @EventPattern('data_ingestion')
   handleSuccess(
     @Payload() message: KafkaSuccessMessage,
@@ -33,10 +36,7 @@ export class KafkaConsumerController {
   ) {
     this.logger.log(`Kafka success message received`);
 
-    this.logger.log(`Raw: ${JSON.stringify(message)}`);
-    if (context && context.getMessage()) {
-      this.logger.log(`Value: ${context.getMessage().value?.toString()}`);
-    }
+    this.ingestService.handleSuccess(message, context);
   }
 
   @EventPattern('data_ingestion_error')
@@ -46,9 +46,6 @@ export class KafkaConsumerController {
   ) {
     this.logger.log(`Kafka error message received`);
 
-    this.logger.log(`Raw: ${JSON.stringify(message)}`);
-    if (context && context.getMessage()) {
-      this.logger.log(`Value: ${context.getMessage().value?.toString()}`);
-    }
+    this.ingestService.handleError(message, context);
   }
 }
