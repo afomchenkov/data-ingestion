@@ -15,12 +15,11 @@ export class SQSErrorEvent {
 
     return JSON.stringify({
       id: Date.now(),
+      event: this.event,
       status: 'error',
       payload: {
-        data: {
-          reason,
-          error,
-        },
+        reason,
+        error,
       },
     });
   }

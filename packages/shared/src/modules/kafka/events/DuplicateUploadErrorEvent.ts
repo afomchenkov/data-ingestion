@@ -18,13 +18,12 @@ export class DuplicateUploadErrorEvent {
     return JSON.stringify({
       id: Date.now(),
       status: 'error',
+      event: this.event,
       payload: {
-        data: {
-          reason,
-          contentSha256,
-          newFileKey,
-          existingFileKey,
-        },
+        reason,
+        contentSha256,
+        newFileKey,
+        existingFileKey,
       },
     });
   }

@@ -17,12 +17,11 @@ export class IngestJobNotFoundErrorEvent {
     return JSON.stringify({
       id: Date.now(),
       status: 'error',
+      event: this.event,
       payload: {
-        data: {
-          reason,
-          uploadid,
-          tenantid,
-        },
+        reason,
+        uploadid,
+        tenantid,
       },
     });
   }

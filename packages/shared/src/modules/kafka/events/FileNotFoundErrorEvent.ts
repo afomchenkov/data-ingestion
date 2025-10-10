@@ -16,11 +16,10 @@ export class FileNotFoundErrorEvent {
     return JSON.stringify({
       id: Date.now(),
       status: 'error',
+      event: this.event,
       payload: {
-        data: {
-          reason,
-          key,
-        },
+        reason,
+        key,
       },
     });
   }

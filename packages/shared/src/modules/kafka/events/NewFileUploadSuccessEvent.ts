@@ -17,12 +17,11 @@ export class NewFileUploadSuccessEvent {
     return JSON.stringify({
       id: Date.now(),
       status: 'success',
+      event: this.event,
       payload: {
-        data: {
-          jobId,
-          uploadId,
-          tenantId,
-        },
+        jobId,
+        uploadId,
+        tenantId,
       },
     });
   }
