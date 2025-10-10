@@ -15,12 +15,7 @@ import {
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { createPresignedPost, PresignedPost } from '@aws-sdk/s3-presigned-post';
 import { Readable } from 'stream';
-import { fileTypeFromBuffer } from 'file-type';
-import { streamToBuffer } from '../utils';
-
-export const ALLOWED_TYPES = ['text/csv', 'application/json', 'application/x-ndjson'];
-
-export type DeclaredFileType = 'csv' | 'json' | 'ndjson';
+import { streamToBuffer, detectFileType } from '@data-ingestion/shared';
 
 export interface AllFilesResult {
   files: string[];
@@ -47,7 +42,7 @@ export class S3Service {
   private bucketName: string;
 
   constructor(private readonly configService: ConfigService) {
-    const endpoint = this.configService.getOrThrow('AWS_LOCALSTACK_URL');
+    const endpoint = this.configService.getOrThrow('AWS_URL');
     const requiredForcePathStyle = this.configService.getOrThrow(
       'AWS_FORCE_PATH_STYLE',
     );
@@ -116,7 +111,7 @@ export class S3Service {
     const response = await this.s3Client.send(command);
 
     if (!response.Versions || response.Versions.length === 0) {
-      this.logger.warn(`No versions found for key: ${key}`);
+      this.logger.error(`No versions found for key: ${key}`);
       return [];
     }
 
@@ -135,9 +130,9 @@ export class S3Service {
     return versions;
   }
 
-  async isValidFileType(
+  async validateFileType(
     s3Key: string,
-    declaredFileType: DeclaredFileType,
+    declaredFileType: 'csv' | 'json' | 'ndjson' | 'unknown',
   ): Promise<string | null> {
     try {
       this.logger.log(`Validating file type for: ${s3Key}`);
@@ -146,30 +141,31 @@ export class S3Service {
         new GetObjectCommand({
           Bucket: this.bucketName,
           Key: s3Key,
+          Range: 'bytes=0-4100', // Only fetch first ~4KB for file type detection
         }),
       );
-      const fileBuffer = await streamToBuffer(fileStream.Body as Readable);
-      const fileType = await fileTypeFromBuffer(fileBuffer);
 
-      this.logger.log(`Detected file type: ${fileType?.mime || 'unknown'}`);
+      if (!fileStream.Body) {
+        throw new Error('No file body returned from S3');
+      }
 
-      if (!fileType) {
-        const message = `Invalid file type detected for ${s3Key} (unknown).`;
-        this.logger.warn(message);
+      const buffer = await streamToBuffer(fileStream.Body as Readable);
+      const fileType = detectFileType(buffer, s3Key);
+
+      this.logger.log(
+        `Detected file type from buffer: ${JSON.stringify(fileType)}`,
+      );
+
+      if (!fileType.isSupported) {
+        const message = `Invalid file type detected for ${s3Key} (${fileType}).`;
+        this.logger.error(message);
 
         return message;
       }
 
-      if (!ALLOWED_TYPES.includes(fileType.mime)) {
-        const message = `Invalid file type detected for ${s3Key} (${fileType?.mime}).`;
-        this.logger.warn(message);
-
-        return message;
-      }
-
-      if (declaredFileType === fileType.mime.split('/')[1]) {
-        const message = `Invalid file type detected for ${s3Key} (${fileType?.mime}), declared file type is ${declaredFileType}.`;
-        this.logger.warn(message);
+      if (declaredFileType !== fileType.ext) {
+        const message = `Invalid file extension detected (${fileType.ext}), declared file extension is (${declaredFileType}).`;
+        this.logger.error(message);
 
         return message;
       }

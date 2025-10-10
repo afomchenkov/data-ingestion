@@ -4,7 +4,9 @@ import {
   TenantService,
   IngestJobService,
   IngestJobEntity,
+  DataSchemaService,
 } from '@data-ingestion/shared';
+import { InitiateUploadDto } from '../dto';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface UploadMetadata {
@@ -24,6 +26,7 @@ export class FileUploadService {
     private readonly s3Service: S3Service,
     private readonly tenantService: TenantService,
     private readonly ingestJobService: IngestJobService,
+    private readonly dataSchemaService: DataSchemaService,
   ) {}
 
   async getFileVersions(key: string): Promise<UploadedFileVersion[]> {
@@ -34,18 +37,20 @@ export class FileUploadService {
     return this.ingestJobService.findOneByUploadId(uploadId);
   }
 
-  async initiateUpload(
-    fileName: string,
-    fileType: string,
-    tenantId: string,
-  ): Promise<UploadMetadata> {
+  async initiateUpload(payload: InitiateUploadDto): Promise<UploadMetadata> {
+    const { fileName, fileType, tenantId, dataName, schemaId } = payload;
     const uploadId = uuidv4();
     const { year, month, day } = this.getDatePath();
     const s3Key = `/${year}/${month}/${day}/tenant/${tenantId}/upload/${uploadId}/${fileName}.${fileType}`;
 
     const tenant = await this.tenantService.findOne(tenantId);
     if (!tenant) {
-      throw new BadRequestException('Tenant not found');
+      throw new BadRequestException('Tenant not found, check tenant id');
+    }
+
+    const schema = await this.dataSchemaService.findOne(schemaId);
+    if (!schema) {
+      throw new BadRequestException('Data schema not found, check schema id');
     }
 
     const presignedUrl = await this.s3Service.generatePresignedUploadUrl(
@@ -64,6 +69,8 @@ export class FileUploadService {
       fileName,
       fileType,
       filePath: s3Key,
+      schemaId,
+      dataName,
     });
 
     this.logger.log(`Upload initiated: ${uploadId}`);

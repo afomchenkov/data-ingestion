@@ -11,7 +11,7 @@ import {
 } from '@aws-sdk/client-sqs';
 import { createHash } from 'crypto';
 import { ConfigService } from '@nestjs/config';
-import { S3Service, DeclaredFileType } from './s3.service';
+import { S3Service } from './s3.service';
 import {
   IngestJobStatus,
   IngestJobService,
@@ -23,7 +23,7 @@ import {
   IngestJobNotFoundErrorEvent,
 } from '@data-ingestion/shared';
 import { KafkaProducerService } from '../../kafka';
-import { streamToBuffer } from '../utils';
+import { streamToBuffer } from '@data-ingestion/shared';
 
 @Injectable()
 export class SqsFileUploadService implements OnModuleInit, OnModuleDestroy {
@@ -38,7 +38,7 @@ export class SqsFileUploadService implements OnModuleInit, OnModuleDestroy {
     private readonly ingestJobService: IngestJobService,
     private readonly kafkaProducer: KafkaProducerService,
   ) {
-    const endpoint = this.configService.getOrThrow('AWS_LOCALSTACK_URL');
+    const endpoint = this.configService.getOrThrow('AWS_URL');
     const ingestQueue = this.configService.getOrThrow('AWS_SQS_INGEST_QUEUE');
 
     this.sqsClient = new SQSClient({
@@ -167,17 +167,15 @@ export class SqsFileUploadService implements OnModuleInit, OnModuleDestroy {
         return;
       }
 
-      // mark ingest job as processing
-      ingestJob.status = IngestJobStatus.PROCESSING;
-      await this.ingestJobService.update(ingestJob.id, ingestJob);
-      const fileType = ingestJob.fileType as DeclaredFileType;
-      const isValidFileType = await this.s3Service.isValidateFileType(
+      // check here that the file is valid and matches declared upload type
+      // to guarantee the file type consistency and avoid potential data corruption
+      const isInvalidFileType = await this.s3Service.validateFileType(
         key,
-        fileType,
+        (ingestJob.fileType as 'csv' | 'json' | 'ndjson') || 'unknown',
       );
 
       // check whether the file is valid and matches declared upload type
-      if (!isValidFileType) {
+      if (isInvalidFileType) {
         ingestJob.status = IngestJobStatus.FAILED;
         await this.ingestJobService.update(ingestJob.id, ingestJob);
         const errorMessage = `The file is invalid or does not match declared upload type: [uploadId: ${uploadid}, tenantId: ${tenantid}]`;

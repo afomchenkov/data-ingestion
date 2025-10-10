@@ -28,8 +28,7 @@ export class FileUploadController {
   async initiateUpload(
     @Body() payload: InitiateUploadDto,
   ): Promise<UploadMetadataDto> {
-    const { fileName, fileType, tenantId } = payload;
-    return this.fileUploadService.initiateUpload(fileName, fileType, tenantId);
+    return this.fileUploadService.initiateUpload(payload);
   }
 
   @Get('/uploads/:uploadId')

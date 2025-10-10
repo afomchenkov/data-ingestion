@@ -1,9 +1,9 @@
 import { Controller } from '@nestjs/common';
-import { IngestDataService } from '../services/ingest-data.service';
+import { FileParserService } from '../services';
 
 @Controller()
 export class FileParserController {
-  constructor(private readonly ingestService: IngestDataService) {}
+  constructor(private readonly fileParserService: FileParserService) {}
 
   // API: fetch all ingestion jobs per tenant
 
