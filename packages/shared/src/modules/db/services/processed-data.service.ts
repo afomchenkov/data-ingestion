@@ -1,13 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { ProcessedDataEntity } from '../entities';
 
 @Injectable()
 export class ProcessedDataService {
+  protected readonly logger = new Logger(ProcessedDataService.name);
+
   constructor(
     @InjectRepository(ProcessedDataEntity)
-    private readonly processedDataRepository: Repository<ProcessedDataEntity>
+    private readonly processedDataRepository: Repository<ProcessedDataEntity>,
+    private readonly dataSource: DataSource
   ) {}
 
   async findAll(): Promise<ProcessedDataEntity[]> {
@@ -75,5 +78,45 @@ export class ProcessedDataService {
       where: { schemaId },
       relations: ['tenant', 'ingestJob'],
     });
+  }
+
+  async bulkUpsert(records: ProcessedDataEntity[]) {
+    if (!records || records.length === 0) {
+      return;
+    }
+
+    const startTime = Date.now();
+
+    try {
+      // upsert with conflict resolution, this uses PostgreSQL's INSERT ... ON CONFLICT ... DO UPDATE
+      await this.dataSource
+        .createQueryBuilder()
+        .insert()
+        .into(ProcessedDataEntity)
+        .values(records)
+        .orUpdate(
+          ['schema_id', 'data', 'ingest_job_id', 'content_hash', 'updated_at'],
+          ['tenant_id', 'data_name', 'unique_key_value'], // conflict target
+          {
+            skipUpdateIfNoValuesChanged: true,
+          }
+        )
+        .execute();
+
+      const duration = Date.now() - startTime;
+
+      this.logger.log(
+        `Bulk upserted ${records.length} records in ${duration}ms (${Math.round(
+          records.length / (duration / 1000)
+        )} records/sec)`
+      );
+    } catch (error) {
+      this.logger.error(
+        `Bulk upsert failed: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`
+      );
+      throw error;
+    }
   }
 }

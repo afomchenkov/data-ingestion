@@ -24,7 +24,7 @@ export class DbSettingsService {
           ? [join(process.cwd(), 'src', '**', '**/*.entity.{ts,js}')]
           : ['dist/**/*.entity.js'],
       autoLoadEntities: true,
-      logging: true,
+      logging: false,
     };
   }
 }

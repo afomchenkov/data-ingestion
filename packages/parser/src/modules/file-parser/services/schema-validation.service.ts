@@ -3,12 +3,6 @@ import Ajv, { ValidateFunction } from 'ajv';
 import addFormats from 'ajv-formats';
 import { DataSchemaService } from '@data-ingestion/shared';
 
-// import * as ndjson from 'ndjson';
-// import * as csv from 'csv-parser';
-// import { parser as jsonParser } from 'stream-json';
-// import { streamArray } from 'stream-json/streamers/StreamArray';
-// import { Transform } from 'stream';
-
 // parses the data and validates it against the schema
 // loads and compiles the schema
 // validates the data
@@ -41,12 +35,21 @@ export class SchemaValidationService {
 
     const schema = {
       ...schemaDefinition.schema,
-      additionalProperties: schemaDefinition.schema.additionalProperties ?? false
+      additionalProperties:
+        schemaDefinition.schema.additionalProperties ?? false,
     };
+
+    this.logger.log(`Schema loaded: ${JSON.stringify(schema)}`);
 
     this.validator = this.ajv.compile(schema);
 
-    return schemaDefinition;
+    const uniqueField = schemaDefinition.schema['x-unique'] || null;
+    this.logger.log(`Unique field: [${uniqueField}]`);
+
+    return {
+      uniqueField,
+      schema,
+    };
   }
 
   validate(data: Record<string, any>): boolean {
@@ -67,16 +70,3 @@ export class SchemaValidationService {
     return this.validator?.errors;
   }
 }
-
-// private getParser(format: string) {
-//   switch (format.toLowerCase()) {
-//     case 'ndjson':
-//       return ndjson.parse();
-//     case 'json':
-//       return jsonParser({ jsonStreaming: true }).pipe(streamArray());
-//     case 'csv':
-//       return csv();
-//     default:
-//       throw new Error(`Unsupported format: ${format}`);
-//   }
-// }

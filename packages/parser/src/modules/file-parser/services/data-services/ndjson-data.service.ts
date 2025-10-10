@@ -1,5 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { IngestJobEntity, IngestJobService } from '@data-ingestion/shared';
+import {
+  IngestJobEntity,
+  IngestJobService,
+  ProcessedDataEntity,
+  ProcessedDataService,
+} from '@data-ingestion/shared';
 import { BaseDataService } from './base-data.service';
 import { SchemaValidationService } from '../schema-validation.service';
 import { S3Service } from '../s3.service';
@@ -13,12 +18,13 @@ export class NDJSONDataService extends BaseDataService {
     protected readonly ingestJobService: IngestJobService,
     protected readonly s3Service: S3Service,
     protected readonly schemaValidationService: SchemaValidationService,
+    protected readonly processedDataService: ProcessedDataService,
   ) {
     super();
   }
 
   async processFile(ingestJob: IngestJobEntity) {
-    const { filePath, schemaId } = ingestJob;
+    const { filePath, schemaId, tenantId } = ingestJob;
 
     this.logger.log(`Processing NDJSON file for ingest job: ${ingestJob.id}`);
 
@@ -30,9 +36,8 @@ export class NDJSONDataService extends BaseDataService {
       throw new Error('Schema ID is required');
     }
 
-    const schema = await this.schemaValidationService.loadSchema(schemaId);
-    this.logger.log(`Schema loaded: ${JSON.stringify(schema)}`);
-
+    const { uniqueField } =
+      await this.schemaValidationService.loadSchema(schemaId);
     const fileStream = await this.s3Service.getFileStream(filePath);
     const readLineFromStream = readline.createInterface({
       input: fileStream,
@@ -40,10 +45,11 @@ export class NDJSONDataService extends BaseDataService {
     });
 
     const buffer: any[] = [];
-    const batchSize = 500;
+    const batchSize = 1000;
     let totalLines = 0;
 
     this.logger.log(`Reading NDJSON file line by line`);
+
     for await (const line of readLineFromStream) {
       if (!line.trim()) {
         continue;
@@ -60,7 +66,7 @@ export class NDJSONDataService extends BaseDataService {
         buffer.push(obj);
 
         if (buffer.length >= batchSize) {
-          await this.saveBatch(buffer);
+          await this.saveBatch(buffer, ingestJob, uniqueField);
           totalLines += buffer.length;
           buffer.length = 0;
         }
@@ -72,32 +78,33 @@ export class NDJSONDataService extends BaseDataService {
     }
 
     if (buffer.length > 0) {
-      await this.saveBatch(buffer);
+      await this.saveBatch(buffer, ingestJob, uniqueField);
       totalLines += buffer.length;
     }
 
     this.logger.log(`Finished reading NDJSON file line by line`);
     this.logger.log(`Total lines: ${totalLines}`);
+
+    this.completeJob(ingestJob);
   }
 
-  private async saveBatch(rows: any[]): Promise<void> {
-    this.logger.log(`Inserted batch of: ${rows.length} rows`);
-    // if (rows.length === 0) return;
-    // try {
-    //   await this.dataSource
-    //     .createQueryBuilder()
-    //     .insert()
-    //     .into('users')
-    //     .values(rows)
-    //     .execute();
-    //   this.logger.log(`Inserted batch of ${rows.length}`);
-    // } catch (err) {
-    //   this.logger.error(`Error inserting batch: ${err.message}`);
-    // }
-    return Promise.resolve();
-  }
+  private async saveBatch(
+    records: any[],
+    ingestJob: IngestJobEntity,
+    uniqueField: string,
+  ): Promise<void> {
+    if (records.length === 0) {
+      return;
+    }
 
-  // async validateRawData() {
-  //   this.logger.log('Validating NDJSON file for ingest job');
-  // }
+    this.logger.log(`Inserting batch of: ${records.length} rows`);
+
+    await this.processedDataService.bulkUpsert(
+      records.map((record) =>
+        this.createEntity(record, ingestJob, uniqueField),
+      ),
+    );
+
+    this.logger.log(`Inserted batch of: ${records.length} rows`);
+  }
 }

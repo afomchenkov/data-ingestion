@@ -61,9 +61,25 @@ CREATE TABLE processed_data (
     data jsonb NOT NULL,
     ingest_job_id uuid REFERENCES ingest_job(id),
     content_hash TEXT,
+    unique_key_value TEXT NOT NULL,
     created_at timestamptz DEFAULT now(),
     updated_at timestamptz DEFAULT now()
 );
+
+-- CREATE UNIQUE INDEX unique_processed_data_key 
+-- ON processed_data (COALESCE(tenant_id::text, ''), data_name, unique_key_value);
+
+ALTER TABLE processed_data
+  ADD CONSTRAINT processed_data_unique UNIQUE (tenant_id, data_name, unique_key_value);
+
+CREATE INDEX idx_processed_data_tenant_data_name 
+ON processed_data (tenant_id, data_name);
+
+CREATE INDEX idx_processed_data_unique_key 
+ON processed_data (unique_key_value);
+
+CREATE INDEX idx_processed_data_content_hash 
+ON processed_data (content_hash);
 
 DROP TABLE IF EXISTS ingest_error CASCADE;
 CREATE TABLE ingest_error (
@@ -96,5 +112,3 @@ CREATE TABLE ingest_history (
 
 CREATE INDEX ON ingest_job (content_sha256);
 CREATE INDEX ON ingest_job (tenant_id);
-CREATE INDEX ON processed_data (content_hash);
-CREATE INDEX ON processed_data (data_name);
