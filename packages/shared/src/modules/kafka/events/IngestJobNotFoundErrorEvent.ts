@@ -7,7 +7,9 @@ export interface IngestJobNotFoundErrorEventPayload {
 }
 
 export class IngestJobNotFoundErrorEvent {
-  constructor(private readonly payload: IngestJobNotFoundErrorEventPayload) {}
+  readonly event = INGEST_JOB_NOT_FOUND_ERROR_EVENT;
+
+  constructor(readonly payload: IngestJobNotFoundErrorEventPayload) {}
 
   toString() {
     const { reason, uploadid, tenantid } = this.payload;
@@ -15,7 +17,6 @@ export class IngestJobNotFoundErrorEvent {
     return JSON.stringify({
       id: Date.now(),
       status: 'error',
-      event: INGEST_JOB_NOT_FOUND_ERROR_EVENT,
       payload: {
         data: {
           reason,

@@ -6,7 +6,9 @@ export interface FileNotFoundErrorEventPayload {
 }
 
 export class FileNotFoundErrorEvent {
-  constructor(private readonly payload: FileNotFoundErrorEventPayload) {}
+  readonly event = FILE_NOT_FOUND_ERROR_EVENT;
+
+  constructor(readonly payload: FileNotFoundErrorEventPayload) {}
 
   toString() {
     const { reason, key } = this.payload;
@@ -14,7 +16,6 @@ export class FileNotFoundErrorEvent {
     return JSON.stringify({
       id: Date.now(),
       status: 'error',
-      event: FILE_NOT_FOUND_ERROR_EVENT,
       payload: {
         data: {
           reason,

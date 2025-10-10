@@ -6,7 +6,9 @@ export interface SQSErrorEventPayload {
 }
 
 export class SQSErrorEvent {
-  constructor(private readonly payload: SQSErrorEventPayload) {}
+  readonly event = SQS_ERROR_EVENT;
+
+  constructor(readonly payload: SQSErrorEventPayload) {}
 
   toString() {
     const { reason, error } = this.payload;
@@ -14,7 +16,6 @@ export class SQSErrorEvent {
     return JSON.stringify({
       id: Date.now(),
       status: 'error',
-      event: SQS_ERROR_EVENT,
       payload: {
         data: {
           reason,

@@ -7,7 +7,9 @@ export interface FileTypeErrorEventPayload {
 }
 
 export class FileTypeErrorEvent {
-  constructor(private readonly payload: FileTypeErrorEventPayload) {}
+  readonly event = FILE_TYPE_ERROR_EVENT;
+
+  constructor(readonly payload: FileTypeErrorEventPayload) {}
 
   toString() {
     const { reason, uploadid, tenantid } = this.payload;
@@ -15,7 +17,6 @@ export class FileTypeErrorEvent {
     return JSON.stringify({
       id: Date.now(),
       status: 'error',
-      event: FILE_TYPE_ERROR_EVENT,
       payload: {
         data: {
           reason,

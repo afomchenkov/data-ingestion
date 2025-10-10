@@ -7,7 +7,9 @@ export interface NewFileUploadSuccessEventPayload {
 }
 
 export class NewFileUploadSuccessEvent {
-  constructor(private readonly payload: NewFileUploadSuccessEventPayload) {}
+  readonly event = NEW_FILE_UPLOAD_SUCCESS_EVENT;
+
+  constructor(readonly payload: NewFileUploadSuccessEventPayload) {}
 
   toString() {
     const { jobId, uploadId, tenantId } = this.payload;
@@ -15,7 +17,6 @@ export class NewFileUploadSuccessEvent {
     return JSON.stringify({
       id: Date.now(),
       status: 'success',
-      event: NEW_FILE_UPLOAD_SUCCESS_EVENT,
       payload: {
         data: {
           jobId,

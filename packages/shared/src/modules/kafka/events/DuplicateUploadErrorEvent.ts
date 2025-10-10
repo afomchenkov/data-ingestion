@@ -8,7 +8,9 @@ export interface DuplicateUploadErrorEventPayload {
 }
 
 export class DuplicateUploadErrorEvent {
-  constructor(private readonly payload: DuplicateUploadErrorEventPayload) {}
+  readonly event = DUPLICATE_UPLOAD_ERROR_EVENT;
+
+  constructor(readonly payload: DuplicateUploadErrorEventPayload) {}
 
   toString() {
     const { reason, contentSha256, newFileKey, existingFileKey } = this.payload;
@@ -16,7 +18,6 @@ export class DuplicateUploadErrorEvent {
     return JSON.stringify({
       id: Date.now(),
       status: 'error',
-      event: DUPLICATE_UPLOAD_ERROR_EVENT,
       payload: {
         data: {
           reason,
