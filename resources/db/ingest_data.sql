@@ -18,8 +18,9 @@ VALUES (
 );
 
 -- add test data schema for json array item upload
-INSERT INTO data_schema (name, description, tenant_id, schema, file_type, delimiter)
+INSERT INTO data_schema (id,name, description, tenant_id, schema, file_type, delimiter)
 VALUES (
+  'ab6f65c7-4858-478c-ab8f-e54b932ff95d',
   'Array Item Schema - JSON array of objects - 1',
   'Schema for array objects: name, description, year, created, random_number, score',
   '33b268bd-8639-448d-93d0-300b62e2bb99',
@@ -34,6 +35,7 @@ VALUES (
        "score": { "type": "number" }
      },
      "required": ["name", "year", "created"],
+     "additionalProperties": false,
      "x-unique": ["name"]
    }'::jsonb,
   'json',
@@ -41,8 +43,9 @@ VALUES (
 );
 
 -- add test data schema for csv upload items
-INSERT INTO data_schema (name, description, tenant_id, schema, file_type, delimiter)
+INSERT INTO data_schema (id, name, description, tenant_id, schema, file_type, delimiter)
 VALUES (
+  '3bf3126f-2a8e-45ec-9443-e32ee3332ddb',
   'CSV Example Schema - 1',
   'Schema for CSV items',
   '33b268bd-8639-448d-93d0-300b62e2bb99',
@@ -57,6 +60,7 @@ VALUES (
        "random_decimals": { "type": "number" }
      },
      "required": ["date", "name", "random_sum"],
+     "additionalProperties": false,
      "x-unique": ["name"]
    }'::jsonb,
   'csv',
@@ -64,8 +68,9 @@ VALUES (
 );
 
 -- add test data schema for ndjson upload items
-INSERT INTO data_schema (name, description, tenant_id, schema, file_type, delimiter)
+INSERT INTO data_schema (id, name, description, tenant_id, schema, file_type, delimiter)
 VALUES (
+  '6027618b-5fc7-483f-a7a2-6fe5c2b6988e',
   'Test Data Schema - NDJSON - 1',
   'Test data schema for NDJSON items - user activity',
   '33b268bd-8639-448d-93d0-300b62e2bb99',
@@ -80,6 +85,7 @@ VALUES (
        "created_at": { "type": "string", "format": "date-time" }
      },
      "required": ["id", "name", "age", "score", "active", "created_at"],
+     "additionalProperties": false,
      "x-unique": ["id"]
    }'::jsonb,
   'ndjson',
