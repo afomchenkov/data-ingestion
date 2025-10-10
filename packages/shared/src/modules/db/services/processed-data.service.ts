@@ -13,6 +13,10 @@ export class ProcessedDataService {
     private readonly dataSource: DataSource
   ) {}
 
+  createQueryBuilder() {
+    return this.processedDataRepository.createQueryBuilder('pd');
+  }
+
   async findAll(): Promise<ProcessedDataEntity[]> {
     return this.processedDataRepository.find({
       relations: ['tenant', 'ingestJob'],
