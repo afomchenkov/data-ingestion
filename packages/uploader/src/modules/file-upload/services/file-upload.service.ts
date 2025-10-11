@@ -6,7 +6,7 @@ import {
   IngestJobEntity,
   DataSchemaService,
 } from '@data-ingestion/shared';
-import { InitiateUploadDto } from '../dto';
+import { InitiateUploadDto, IngestJobListDto, IngestJobDto } from '../dto';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface UploadMetadata {
@@ -37,13 +37,47 @@ export class FileUploadService {
     return this.ingestJobService.findOneByUploadId(uploadId);
   }
 
+  async getIngestionJobsByTenant(
+    tenantId: string,
+    page: number = 1,
+    limit: number = 50,
+  ): Promise<IngestJobListDto> {
+    const skip = (page - 1) * limit;
+
+    const [items, total] = await this.ingestJobService.findAndCount({
+      where: { tenantId },
+      order: { createdAt: 'DESC' },
+      skip,
+      take: limit,
+    });
+
+    const dtos = items.map(
+      (item) =>
+        new IngestJobDto({
+          id: item.id,
+          tenantId: item.tenantId,
+          uploadId: item.uploadId,
+          fileName: item.fileName,
+          fileType: item.fileType,
+          filePath: item.filePath,
+          contentSha256: item.contentSha256,
+          status: item.status,
+          sizeBytes: item.sizeBytes,
+          createdAt: item.createdAt,
+          updatedAt: item.updatedAt,
+        }),
+    );
+
+    return new IngestJobListDto(dtos, total, page, limit);
+  }
+
   /**
    * Initiate a file upload, generate a presigned url for the file and create an ingest job
    * - the same signed URL cannot be used for multiple uploads, and the upload must be completed within the expiration time
    * - the ingest job is created with the default status INITIATED
    * - if the user does not use the generated presigned url, the ingest job status will be updated to STALE
    * - the tenant and schema must exist in the database before initiating the upload
-   * 
+   *
    * @param payload - The payload containing the file name, file type, tenant id, data name, and schema id
    * @returns The upload metadata containing the upload id, original file name, s3 key, and presigned url
    */

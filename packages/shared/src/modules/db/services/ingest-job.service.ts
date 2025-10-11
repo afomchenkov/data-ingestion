@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindManyOptions, Repository } from 'typeorm';
 import { IngestJobEntity } from '../entities';
 
 @Injectable()
 export class IngestJobService {
   constructor(
     @InjectRepository(IngestJobEntity)
-    private readonly ingestJobRepository: Repository<IngestJobEntity>,
+    private readonly ingestJobRepository: Repository<IngestJobEntity>
   ) {}
 
   async findAll(): Promise<IngestJobEntity[]> {
@@ -18,19 +18,25 @@ export class IngestJobService {
     return this.ingestJobRepository.findOneBy({ id });
   }
 
+  async findAndCount(
+    options: FindManyOptions<IngestJobEntity>
+  ): Promise<[IngestJobEntity[], number]> {
+    return this.ingestJobRepository.findAndCount(options);
+  }
+
   async findOneByUploadId(uploadId: string): Promise<IngestJobEntity | null> {
     return this.ingestJobRepository.findOneBy({ uploadId });
   }
 
   async findOneByUpload(
     uploadId: string,
-    tenantId: string,
+    tenantId: string
   ): Promise<IngestJobEntity | null> {
     return this.ingestJobRepository.findOne({ where: { uploadId, tenantId } });
   }
 
   async findOneByContentSha256(
-    contentSha256: string,
+    contentSha256: string
   ): Promise<IngestJobEntity | null> {
     return this.ingestJobRepository.findOne({ where: { contentSha256 } });
   }
@@ -42,7 +48,7 @@ export class IngestJobService {
 
   async update(
     id: string,
-    data: Partial<IngestJobEntity>,
+    data: Partial<IngestJobEntity>
   ): Promise<IngestJobEntity | null> {
     await this.ingestJobRepository.update(id, data);
     return this.findOne(id);

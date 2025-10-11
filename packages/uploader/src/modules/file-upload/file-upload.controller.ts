@@ -1,5 +1,21 @@
-import { Controller, Post, Body, Get, Param } from '@nestjs/common';
-import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Param,
+  Query,
+  DefaultValuePipe,
+  ParseUUIDPipe,
+  ParseIntPipe,
+} from '@nestjs/common';
+import {
+  ApiBody,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { FileUploadService } from './services/file-upload.service';
 import { TenantService, DataSchemaService } from '@data-ingestion/shared';
 import {
@@ -10,6 +26,7 @@ import {
   CreateTenantDto,
   UploadedFileVersionDto,
   DataSchemaResponseDto,
+  IngestJobListDto,
 } from './dto';
 
 @ApiTags('Files Upload')
@@ -37,6 +54,42 @@ export class FileUploadController {
     @Param('uploadId') uploadId: string,
   ): Promise<IngestJobDto | null> {
     return this.fileUploadService.getUploadStatus(uploadId);
+  }
+
+  @Get('/uploads')
+  @ApiOperation({ summary: 'Get all ingestion jobs' })
+  @ApiQuery({
+    name: 'tenant_id',
+    required: true,
+    type: 'string',
+    format: 'uuid',
+    description: 'Tenant ID to filter ingestion jobs',
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: 'number',
+    description: 'Page number (default: 1)',
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: 'number',
+    description: 'Items per page (default: 50)',
+    example: 10,
+  })
+  @ApiOkResponse({ type: IngestJobListDto })
+  async getAllIngestionJobs(
+    @Query('tenant_id', new ParseUUIDPipe({ version: '4' })) tenantId: string,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
+    @Query('limit', new DefaultValuePipe(50), ParseIntPipe) limit: number = 50,
+  ): Promise<IngestJobListDto> {
+    return this.fileUploadService.getIngestionJobsByTenant(
+      tenantId,
+      page,
+      limit,
+    );
   }
 
   @Get('/versions')
