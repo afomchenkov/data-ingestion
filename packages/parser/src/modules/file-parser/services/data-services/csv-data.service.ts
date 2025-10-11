@@ -22,6 +22,14 @@ export class CSVDataService extends BaseDataService {
     super();
   }
 
+  /**
+   * Process a CSV file
+   * - validates the file data against assigned schema, if the record does not match the schema, it is skipped
+   * - saves the record to the database in batches of 1000
+   * 
+   * @param ingestJob 
+   * @returns 
+   */
   async processFile(ingestJob: IngestJobEntity) {
     const { filePath, schemaId } = ingestJob;
     this.logger.log(`Processing CSV file for ingest job: ${ingestJob.id}`);

@@ -78,6 +78,8 @@ async function bootstrap() {
       },
       consumer: {
         groupId: configService.getOrThrow<string>('KAFKA_CONSUMER_GROUP'),
+        sessionTimeout: 30000, // default is 10s
+        heartbeatInterval: 3000, // default is 300ms
       },
       // Start from beginning to test
       subscribe: {

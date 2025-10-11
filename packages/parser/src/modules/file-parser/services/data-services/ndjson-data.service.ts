@@ -22,6 +22,14 @@ export class NDJSONDataService extends BaseDataService {
     super();
   }
 
+  /**
+   * Process a NDJSON file
+   * - validates the file data against assigned schema, if the record does not match the schema, it is skipped
+   * - saves the record to the database in batches of 1000
+   * 
+   * @param ingestJob 
+   * @returns 
+   */
   async processFile(ingestJob: IngestJobEntity) {
     const { filePath, schemaId } = ingestJob;
 
@@ -85,7 +93,7 @@ export class NDJSONDataService extends BaseDataService {
       totalLines += buffer.length;
     }
 
-    this.logger.log(`Finished reading NDJSON file line by line`);
+    this.logger.log(`Finished processing NDJSON file`);
     this.logger.log(`Total lines: ${totalLines}`);
 
     this.completeJob(ingestJob);

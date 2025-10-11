@@ -21,17 +21,6 @@ import { FileParserService } from '../services';
 export class FileParserController {
   constructor(private readonly fileParserService: FileParserService) {}
 
-  // API: fetch all ingestion jobs per tenant
-
-  // API: fetch specific ingestion job
-
-  // API: fetch all uploaded files per tenant
-
-  // API: fetch file record info
-
-  // API: fetch filtered file fields
-
-  // API: fetch data records by data_name
   @Get('data-records')
   @ApiOperation({
     summary: 'Fetch data records by data_name',
@@ -86,7 +75,6 @@ export class FileParserController {
     return this.fileParserService.fetchDataRecords(query);
   }
 
-  // API: fetch filtered data fields by provided json fields
   @Post('filtered-fields')
   @ApiOperation({
     summary: 'Fetch filtered data fields by provided json fields',
