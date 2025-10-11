@@ -27,6 +27,8 @@ cp .env.example .env
 # go to /packages/parser and copy .env.example into created .env file
 cp .env.example .env
 
+# to start the services from localhost
+
 # start service `uploader` from root
 yarn run start:uploader
 # or from ~/packages/uploader
@@ -42,6 +44,10 @@ yarn run start:dev
 # this should start the service at port 8282
 # to check the Swagger doc go to: http://localhost:8282/api/v1/docs
 ```
+
+## How to test
+
+Check documentation [here](docs/testing.md)
 
 ## Run compose files
 
@@ -182,6 +188,9 @@ docker exec -it localstack awslocal sqs list-queues
 #     ]
 # }
 
+# check SQS URL
+docker exec -it localstack awslocal sqs get-queue-url --queue-name raw-data-ingestion-queue
+
 # check bucket config
 docker exec -it localstack awslocal s3api get-bucket-notification-configuration --bucket raw-data-ingestion-bucket
 docker exec -it localstack awslocal s3api get-bucket-versioning --bucket raw-data-ingestion-bucket
@@ -209,36 +218,10 @@ curl localhost:8181/api/v1/health/liveness
 # should output ok all systems 'up'
 ```
 
-## Submit test CSV/JSON file
+## Check parser service
 
 ```sh
-# 1. go to folder ./scripts/file_generator
-# 2. run necessary file generator
-# 3. adjust the file name
-# 4. choose any tenant by running the URL (GET): http://localhost:8181/api/v1/files/tenants
-# 5. run the following URL to get signed URL (POST): http://localhost:8181/api/v1/files/uploads/init
-# 6. upload to S3 via signed URL with the request below
+curl localhost:8282/api/v1/health/liveness
 
-# supported types:
-#   'text/csv'
-#   'application/json'
-#   'application/x-ndjson'
-
-# NDJSON request for upload
-curl -X PUT \
-  -T ./random_data.ndjson \
-  -H "Content-Type: application/x-ndjson" \
-  "signed_url"
-
-# CSV request for upload
-curl -X PUT \
-  -T ./random_data.csv \
-  -H "Content-Type: text/csv" \
-  "signed_url"
-
-# JSON request for upload
-curl -X PUT \
-  -T ./random_array.json \
-  -H "Content-Type: application/json" \
-  "signed_url"
+# should output ok all systems 'up'
 ```

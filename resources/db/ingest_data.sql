@@ -18,7 +18,7 @@ VALUES (
 );
 
 -- add test data schema for json array item upload
-INSERT INTO data_schema (id,name, description, tenant_id, schema, file_type, delimiter)
+INSERT INTO data_schema (id, name, description, tenant_id, schema, file_type, delimiter)
 VALUES (
   'ab6f65c7-4858-478c-ab8f-e54b932ff95d',
   'Array Item Schema - JSON array of objects - 1',
