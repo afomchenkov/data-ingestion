@@ -126,12 +126,6 @@ export class FileParserService {
     }
   }
 
-  /**
-   * Extracts specific fields from a JSON object using dot notation paths
-   * @param data - Source JSON object
-   * @param fieldPaths - Array of dot-notation paths (e.g., ['user.name', 'metadata.status'])
-   * @returns Object containing only the requested fields
-   */
   private extractFields(
     data: Record<string, any>,
     fieldPaths: string[],
@@ -148,12 +142,6 @@ export class FileParserService {
     return result;
   }
 
-  /**
-   * Gets a nested value from an object using dot notation
-   * @param obj - Source object
-   * @param path - Dot-notation path (e.g., 'user.profile.name')
-   * @returns The value at the path, or undefined if not found
-   */
   private getNestedValue(obj: any, path: string): any {
     const keys = path.split('.');
     let current = obj;
@@ -168,12 +156,6 @@ export class FileParserService {
     return current;
   }
 
-  /**
-   * Sets a nested value in an object using dot notation
-   * @param obj - Target object
-   * @param path - Dot-notation path (e.g., 'user.profile.name')
-   * @param value - Value to set
-   */
   private setNestedValue(obj: any, path: string, value: any): void {
     const keys = path.split('.');
     const lastKey = keys.pop()!;
@@ -189,11 +171,6 @@ export class FileParserService {
     current[lastKey] = value;
   }
 
-  /**
-   * Maps ProcessedDataEntity to ProcessedDataResponseDto
-   * @param entity - Database entity
-   * @returns Response DTO
-   */
   private mapToResponseDto(
     entity: ProcessedDataEntity,
   ): ProcessedDataResponseDto {
