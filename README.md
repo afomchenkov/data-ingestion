@@ -1,6 +1,6 @@
 # Data Ingestion
 
-## Prerequisiztes
+## Prerequisites
 
 Make sure you have installed:
 - `18.0.0 <= Node < 21.0.0`
