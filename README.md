@@ -1,5 +1,48 @@
 # Data Ingestion
 
+## Prerequisiztes
+
+Make sure you have installed:
+- `18.0.0 <= Node < 21.0.0`
+- `Python > 3.11`
+- Docker (docker compose)
+- Make tool to [build the project](https://formulae.brew.sh/formula/make)
+- Yarn [package manager](https://formulae.brew.sh/formula/yarn)
+
+## To run the project and check uploads
+
+From the root folder:
+
+```sh
+# install all dependencies
+yarn install
+# build shared lib
+yarn bootstrap
+# start all necessary services via Docker and check that
+# all containers started: DB, Localstack, Kafka
+make up
+# create necessary .env files and start the services
+# go to /packages/uploader and copy .env.example into created .env file
+cp .env.example .env
+# go to /packages/parser and copy .env.example into created .env file
+cp .env.example .env
+
+# start service `uploader` from root
+yarn run start:uploader
+# or from ~/packages/uploader
+yarn run start:dev
+# this should start the service at port 8181
+# to check the Swagger doc go to: http://localhost:8181/api/v1/docs
+
+
+# start service `parser` from root
+yarn run start:parser
+# or from ~/packages/parser
+yarn run start:dev
+# this should start the service at port 8282
+# to check the Swagger doc go to: http://localhost:8282/api/v1/docs
+```
+
 ## Run compose files
 
 ```sh

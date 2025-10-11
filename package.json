@@ -10,13 +10,15 @@
   ],
   "references": [
     {
-      "path": "packages/lib"
+      "path": "packages/shared"
     }
   ],
   "scripts": {
     "bootstrap": "yarn install && yarn run build:shared",
     "start:lib": "yarn workspace @data-ingestion/shared start:dev",
     "build:shared": "yarn workspace @data-ingestion/shared build",
-    "lint": "yarn workspaces run lint"
+    "lint": "yarn workspaces run lint",
+    "start:uploader": "yarn workspace uploader start:dev",
+    "start:parser": "yarn workspace parser start:dev"
   }
 }
