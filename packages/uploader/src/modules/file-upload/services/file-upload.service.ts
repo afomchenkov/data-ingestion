@@ -37,6 +37,16 @@ export class FileUploadService {
     return this.ingestJobService.findOneByUploadId(uploadId);
   }
 
+  /**
+   * Initiate a file upload, generate a presigned url for the file and create an ingest job
+   * - the same signed URL cannot be used for multiple uploads, and the upload must be completed within the expiration time
+   * - the ingest job is created with the default status INITIATED
+   * - if the user does not use the generated presigned url, the ingest job status will be updated to STALE
+   * - the tenant and schema must exist in the database before initiating the upload
+   * 
+   * @param payload - The payload containing the file name, file type, tenant id, data name, and schema id
+   * @returns The upload metadata containing the upload id, original file name, s3 key, and presigned url
+   */
   async initiateUpload(payload: InitiateUploadDto): Promise<UploadMetadata> {
     const { fileName, fileType, tenantId, dataName, schemaId } = payload;
     const uploadId = uuidv4();

@@ -8,6 +8,7 @@ import {
   SQSClient,
   ReceiveMessageCommand,
   DeleteMessageCommand,
+  Message,
 } from '@aws-sdk/client-sqs';
 import { createHash } from 'crypto';
 import { ConfigService } from '@nestjs/config';
@@ -102,9 +103,22 @@ export class SqsFileUploadService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  private async handleMessage(message: any) {
+  /**
+   * Handle a message from the SQS queue upon file upload completion
+   * - checks if the file exists in S3, otherwise publishes an error event - FileNotFoundErrorEvent
+   * - checks if the ingest job exists, otherwise publishes an error event - IngestJobNotFoundErrorEvent
+   * - checks if the ingest job is in the INITIATED status, otherwise publishes an error event and
+   * removes the file version from S3, to prevent duplicate file uploads - IngestJobNotInitiatedErrorEvent
+   * - checks if the file is valid and matches declared upload type, otherwise publishes an error event - FileTypeErrorEvent
+   * - checks by file content sha256 whether the file is already ingested, otherwise publishes an error event - DuplicateUploadErrorEvent
+   * - publishes a success event and sets the ingest job status to QUEUED - NewFileUploadSuccessEvent
+   * 
+   * @param message - The message to handle
+   * @returns 
+   */
+  private async handleMessage(message: Message) {
     try {
-      if (!message.Body) {
+      if (!message.Body || !message.ReceiptHandle) {
         this.logger.error('Message body is empty');
         return;
       }
