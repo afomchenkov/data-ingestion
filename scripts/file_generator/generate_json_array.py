@@ -36,7 +36,7 @@ def generate_random_json_array(num_objects=10):
 
 
 if __name__ == "__main__":
-    data = generate_random_json_array(num_objects=100)
+    data = generate_random_json_array(num_objects=10_000)
 
     with open("random_array.json", "w") as f:
         json.dump(data, f, indent=4)

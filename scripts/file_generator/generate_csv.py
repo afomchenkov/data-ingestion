@@ -72,4 +72,4 @@ def generate_csv(filename="random_data.csv", rows=10000):
 
 
 if __name__ == "__main__":
-    generate_csv(rows=100_000)
+    generate_csv(rows=10_000)
