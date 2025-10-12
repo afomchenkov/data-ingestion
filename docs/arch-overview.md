@@ -68,3 +68,32 @@ Once a user uploads the file, the following validation happens:
 - any other error that can occur while parsing the source file - `SQSErrorEvent`
 - a success event to mark the job as QUEUED for further processing - `NewFileUploadSuccessEvent`
 
+## Data parsing
+
+The ingestion pipeline accepts the file types `['csv', 'json', 'ndjson']` which should contain the list of homogeneous data.
+For data parsing and extraction, there must be a corresponding data schema which defines the rules according to which the
+data is processed, the validator is using `Ajv` library for parsing, if the record is not valid against the schema, it's
+skipped from being saved in DB and the error is logged.
+An important field in the schema is `x-unique` which defines a unique key to override the duplicates.
+
+An example of the data schema is:
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "name": { "type": "string" },
+    "description": { "type": "string" },
+    "year": { "type": "integer" },
+    "created": { "type": "string", "format": "date" },
+    "random_number": { "type": "integer" },
+    "score": { "type": "number" }
+  },
+  "required": ["name", "year", "created"],
+  "additionalProperties": false,
+  "x-unique": ["name"]
+}
+```
+
+## Data parsing flow
+
