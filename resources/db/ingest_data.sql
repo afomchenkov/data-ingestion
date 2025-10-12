@@ -27,10 +27,10 @@ VALUES (
   '{
      "type": "object",
      "properties": {
-       "name": { "type": "string" },
-       "description": { "type": "string" },
+       "name": { "type": "string", "trimString": true },
+       "description": { "type": "string", "trimString": true },
        "year": { "type": "integer" },
-       "created": { "type": "string", "format": "date" },
+       "created": { "type": "string", "format": "date", "normalizeDate": true },
        "random_number": { "type": "integer" },
        "score": { "type": "number" }
      },
@@ -52,9 +52,9 @@ VALUES (
   '{
      "type": "object",
      "properties": {
-       "date": { "type": "string", "format": "date" },
-       "name": { "type": "string" },
-       "description": { "type": "string" },
+       "date": { "type": "string", "format": "date", "normalizeDate": true },
+       "name": { "type": "string", "trimString": true },
+       "description": { "type": "string", "trimString": true },
        "random_sum": { "type": "integer" },
        "random_average": { "type": "number" },
        "random_decimals": { "type": "number" }
@@ -78,11 +78,11 @@ VALUES (
      "type": "object",
      "properties": {
        "id": { "type": "string", "format": "uuid" },
-       "name": { "type": "string" },
+       "name": { "type": "string", "trimString": true },
        "age": { "type": "integer" },
        "score": { "type": "number" },
        "active": { "type": "boolean" },
-       "created_at": { "type": "string", "format": "date-time" }
+       "created_at": { "type": "string", "format": "date-time", "normalizeDate": true }
      },
      "required": ["id", "name", "age", "score", "active", "created_at"],
      "additionalProperties": false,

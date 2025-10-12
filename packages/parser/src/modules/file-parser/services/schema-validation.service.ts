@@ -2,11 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import Ajv, { ValidateFunction } from 'ajv';
 import addFormats from 'ajv-formats';
 import { DataSchemaService } from '@data-ingestion/shared';
-
-// parses the data and validates it against the schema
-// loads and compiles the schema
-// validates the data
-// returns invalid records or null if all records are valid
+import { parseISO, formatISO } from 'date-fns';
 
 @Injectable()
 export class SchemaValidationService {
@@ -23,6 +19,38 @@ export class SchemaValidationService {
       strictSchema: false,
     });
     addFormats(this.ajv);
+
+    // trim the string
+    this.ajv.addKeyword({
+      keyword: 'trimString',
+      modifying: true,
+      schema: false,
+      validate(_schema, data, _parentSchema, dataCxt) {
+        if (typeof data === 'string') {
+          (dataCxt?.parentData as any)[dataCxt?.parentDataProperty!] = data.trim();
+        }
+        return true;
+      },
+    });
+
+    // parse the date string to ISO8601 format
+    this.ajv.addKeyword({
+      keyword: 'normalizeDate',
+      modifying: true,
+      schema: false,
+      validate(_schema: any, data: any, _parentSchema, dataCxt) {
+        if (typeof data === 'string') {
+          try {
+            const parsed = parseISO(data.trim());
+            (dataCxt?.parentData as any)[dataCxt?.parentDataProperty!] = formatISO(parsed);
+            return true;
+          } catch {
+            return false;
+          }
+        }
+        return true;
+      },
+    });
   }
 
   async loadSchema(schemaId: string): Promise<Record<string, any>> {
