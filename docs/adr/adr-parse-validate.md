@@ -54,3 +54,5 @@ Schema changes can be versioned and validated before enabling ingestion for a te
 Ajv introduces a lightweight dependency and must be updated for security patches.
 Complex cross-record validations (e.g., uniqueness across files) remain outside the JSON Schema scope and require separate logic or DB constraints.
 
+<img width="2236" height="1930" alt="ingest-data-example" src="https://github.com/user-attachments/assets/fb512e61-abf3-4094-9f51-81aede6b6b9b" />
+
