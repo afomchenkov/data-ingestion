@@ -10,6 +10,7 @@ PostgreSQL as DB, the source files are stored in S3.
 
 ## DB tables structure
 
+<img width="1519" height="1159" alt="ingestion-data-db" src="https://github.com/user-attachments/assets/ef899e2b-7c3a-470d-aa61-b0bd432dbd4d" />
 
 
 ## Ingestion job lifecycle
