@@ -2,9 +2,7 @@ COMPOSE_FILES = \
   -f docker/compose.yml \
   -f docker/compose.db.yml \
 	-f docker/compose.kafka.yml \
-  -f docker/compose.localstack.yml \
-	-f docker/compose.cache.yml \
-  -f docker/compose.monitoring.yml
+  -f docker/compose.localstack.yml
 
 up:
 	docker compose $(COMPOSE_FILES) up -d

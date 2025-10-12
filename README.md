@@ -45,9 +45,12 @@ yarn run start:dev
 # to check the Swagger doc go to: http://localhost:8282/api/v1/docs
 ```
 
-## How to test
+## Docs
 
-Check documentation [here](docs/testing.md)
+- How to test and upload the files [here](docs/testing.md)
+- Architecture overview [here](docs/arch-overview.md)
+
+
 
 ## Run compose files
 

@@ -66,9 +66,6 @@ CREATE TABLE processed_data (
     updated_at timestamptz DEFAULT now()
 );
 
--- CREATE UNIQUE INDEX unique_processed_data_key 
--- ON processed_data (COALESCE(tenant_id::text, ''), data_name, unique_key_value);
-
 ALTER TABLE processed_data
   ADD CONSTRAINT processed_data_unique UNIQUE (tenant_id, data_name, unique_key_value);
 
