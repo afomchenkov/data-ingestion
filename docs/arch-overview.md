@@ -97,5 +97,4 @@ An example of the data schema is:
 
 ## Data parsing flow
 
-![parsing-flow](https://github.com/user-attachments/assets/81cb7f93-cce1-49fe-a2eb-45837ae18af8)
-
+<img src="https://github.com/user-attachments/assets/81cb7f93-cce1-49fe-a2eb-45837ae18af8" alt="data-parsing-flow" width="800"/>
