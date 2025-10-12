@@ -12,6 +12,13 @@ PostgreSQL as DB, the source files are stored in S3.
 
 <img width="1519" height="1159" alt="ingestion-data-db" src="https://github.com/user-attachments/assets/ef899e2b-7c3a-470d-aa61-b0bd432dbd4d" />
 
+The main table to store parsed data is `processed_data`
+The table to store ingestion jobs `ingest_job`
+The table to store data schemas `data_schema`
+The table to store the data about customers/tenants `tenant`
 
 ## Ingestion job lifecycle
+
+Ingestion job data is supposed to track the upload lifecycle since the signed URL issue till the data saved to DB.
+
 
