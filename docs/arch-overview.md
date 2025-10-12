@@ -43,9 +43,7 @@ property which will be used to override the data if any duplicate row is uploade
 The field `dataName` is an important property to define the data grouping, if `dataName` does not exist, all data will be grouped anew, if
 the `dataName` already exist, all new data will be populated to the same group and in case of duplicates it'll override existing items.
 
-
-![ingestion-job-flow](https://github.com/user-attachments/assets/b82e6dd6-4f3d-44c9-91f6-27bb1c66ad40)
-
+<img src="https://github.com/user-attachments/assets/b82e6dd6-4f3d-44c9-91f6-27bb1c66ad40" alt="data-parsing-flow" width="800"/>
 
 ## File upload validation
 
