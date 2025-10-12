@@ -50,6 +50,7 @@ yarn run start:dev
 - How to test and upload the files [here](docs/testing.md)
 - Architecture overview [here](docs/arch-overview.md)
 - ADR data parsing and validation [here](docs/adr/adr-parse-validate.md)
+- Deployment plan [here](docs/deployment.md)
 
 
 ## Run compose files
