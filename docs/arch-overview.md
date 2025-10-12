@@ -21,5 +21,50 @@ The table to store the data about customers/tenants `tenant`
 
 Ingestion job data is supposed to track the upload lifecycle since the signed URL issue till the data saved to DB.
 
+The required payload to init the ingestion job is:
+
+```json
+{
+  "fileName": "string",
+  "fileType": "string",
+  "dataName": "string",
+  "schemaId": "uuid",
+  "tenantId": "uuid"
+}
+```
+
+The filed `fileType` defines the uploaded file extension, supported types: `['csv', 'json', 'ndjson']`
+
+The fields `schemaId` and `tenantId` must be corresponding IDs of the records in DB, otherwise it won't be possible to submit a request.
+
+The `schemaId` must be the id of the schema, according to which the data will be validated and parsed. The schema also defines the `key unique`
+property which will be used to override the data if any duplicate row is uploaded, hence the `last-write-wins upsert` approach.
+
+The field `dataName` is an important property to define the data grouping, if `dataName` does not exist, all data will be grouped anew, if
+the `dataName` already exist, all new data will be populated to the same group and in case of duplicates it'll override existing items.
+
+
 ![ingestion-job-flow](https://github.com/user-attachments/assets/b82e6dd6-4f3d-44c9-91f6-27bb1c66ad40)
+
+
+## File upload validation
+
+Once a user uploads the file, the following validation happens:
+
+- the tenant ID checked, if not exist, the job will fail
+- the schema ID checked, if not exist, the job will fail
+- the job status checked, it not INITIATED, it means that the same signed URL was used more than once, flow stops
+- the uploaded file type/extension checked, if the declared file type does not match the real one, the job will fail
+- SHA256 is calculated for the whole file, if duplicate hash value, the job is marked as DUPLICATE and flow stops
+- in the end, the job is marked as QUEUED
+
+
+## Kafka events
+
+- the uploaded file is not found by some reason in S3 - `FileNotFoundErrorEvent`
+- the initiated ingestion job record is not found in DB - `IngestJobNotFoundErrorEvent`
+- the declared file type does not match the real type or the file is not valid - `FileTypeErrorEvent`
+- the uploaded file has a duplicate SHA256 hash - `DuplicateUploadErrorEvent`
+- any other error that can occur while parsing the source file - `SQSErrorEvent`
+- a success event to mark the job as QUEUED for further processing - `NewFileUploadSuccessEvent`
 
