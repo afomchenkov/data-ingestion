@@ -22,9 +22,9 @@ import {
   FileTypeErrorEvent,
   SQSErrorEvent,
   IngestJobNotFoundErrorEvent,
+  streamToBuffer,
 } from '@data-ingestion/shared';
 import { KafkaProducerService } from '../../kafka';
-import { streamToBuffer } from '@data-ingestion/shared';
 
 @Injectable()
 export class SqsFileUploadService implements OnModuleInit, OnModuleDestroy {

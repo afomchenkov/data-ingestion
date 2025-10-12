@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { KafkaContext } from '@nestjs/microservices';
-import { IngestJobStatus } from '@data-ingestion/shared';
 import {
   NewFileUploadSuccessEvent,
   FileNotFoundErrorEvent,
@@ -9,6 +8,7 @@ import {
   SQSErrorEvent,
   IngestJobNotFoundErrorEvent,
   IngestJobService,
+  IngestJobStatus,
 } from '@data-ingestion/shared';
 import {
   CSVDataService,
