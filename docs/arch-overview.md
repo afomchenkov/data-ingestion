@@ -21,4 +21,5 @@ The table to store the data about customers/tenants `tenant`
 
 Ingestion job data is supposed to track the upload lifecycle since the signed URL issue till the data saved to DB.
 
+![ingestion-job-flow](https://github.com/user-attachments/assets/b82e6dd6-4f3d-44c9-91f6-27bb1c66ad40)
 
