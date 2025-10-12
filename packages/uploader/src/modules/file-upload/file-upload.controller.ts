@@ -36,7 +36,7 @@ export class FileUploadController {
     private readonly fileUploadService: FileUploadService,
     private readonly tenantService: TenantService,
     private readonly dataSchemaService: DataSchemaService,
-  ) {}
+  ) { }
 
   @Post('/uploads/init')
   @ApiOperation({ summary: 'Initiate a file upload' })
@@ -94,10 +94,15 @@ export class FileUploadController {
 
   @Get('/versions')
   @ApiOperation({ summary: 'Get file versions' })
+  @ApiQuery({
+    name: 'key',
+    required: false,
+    description: 'Optional file key to filter versions',
+  })
   async getFileVersions(
-    @Param('key') key: string,
+    @Query('key') key?: string,
   ): Promise<UploadedFileVersionDto[]> {
-    return this.fileUploadService.getFileVersions(key);
+    return this.fileUploadService.getFileVersions(key ?? '');
   }
 
   @Get('/data-schemas')
