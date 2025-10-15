@@ -1,5 +1,5 @@
-FROM node:20-alpine3.19 AS dependencies
-
+# stage 1: build
+FROM node:20-alpine AS builder
 WORKDIR /app
 
 RUN apk add --no-cache bash curl dos2unix
@@ -7,20 +7,18 @@ RUN apk add --no-cache bash curl dos2unix
 COPY package.json ./
 COPY yarn.lock ./
 
-RUN yarn install
-
-FROM dependencies AS build
-
-WORKDIR /app
-
-COPY . ./
-
+RUN yarn install --frozen-lockfile
+COPY . .
 RUN yarn build
 
-FROM node:20-alpine3.19 AS production
-
+# stage 2: runtime
+FROM node:20-alpine
 WORKDIR /app
-
-ENTRYPOINT [ "yarn", "start:prod" ]
+ENV NODE_ENV=production
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY package.json .
 
 EXPOSE 8181
+
+CMD ["node", "dist/main.js"]
