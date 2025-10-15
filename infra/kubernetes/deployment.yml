@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+
+kind: Deployment
+
+metadata:
+  name: uploader
+  namespace: ingest
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: uploader
+  template:
+    metadata:
+      labels:
+        app: uploader
+    spec:
+      serviceAccountName: uploader-sa
+      containers:
+        - name: uploader
+          image: 123456789012.dkr.ecr.us-east-1.amazonaws.com/uploader:1.0.0
+          ports:
+            - containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: uploader-config
+            - secretRef:
+                name: ingest-secrets
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10

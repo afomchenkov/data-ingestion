@@ -1,0 +1,10 @@
+apiVersion: v1
+
+kind: ConfigMap
+
+metadata:
+  name: uploader-config
+  namespace: ingest
+data:
+  S3_BUCKET: "data-ingest-uploads-prod"
+  SQS_QUEUE_URL: "https://sqs.us-east-1.amazonaws.com/123456789012/ingest-queue-prod"
