@@ -22,9 +22,9 @@ import {
   FileTypeErrorEvent,
   SQSErrorEvent,
   IngestJobNotFoundErrorEvent,
+  streamToBuffer,
 } from '@data-ingestion/shared';
 import { KafkaProducerService } from '../../kafka';
-import { streamToBuffer } from '@data-ingestion/shared';
 
 @Injectable()
 export class SqsFileUploadService implements OnModuleInit, OnModuleDestroy {
@@ -39,7 +39,7 @@ export class SqsFileUploadService implements OnModuleInit, OnModuleDestroy {
     private readonly ingestJobService: IngestJobService,
     private readonly kafkaProducer: KafkaProducerService,
   ) {
-    const endpoint = this.configService.getOrThrow('AWS_SQS_URL');
+    const endpoint = this.configService.getOrThrow('AWS_URL');
     const ingestQueue = this.configService.getOrThrow('AWS_SQS_INGEST_QUEUE');
 
     this.sqsClient = new SQSClient({

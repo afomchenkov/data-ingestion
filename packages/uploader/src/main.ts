@@ -68,6 +68,13 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api/v1');
 
+  // Allow all CORS - disable on prod
+  app.enableCors({
+    origin: '*',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: false, // Set to true if you need cookies or auth headers
+  });
+
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,

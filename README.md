@@ -9,6 +9,9 @@ Make sure you have installed:
 - Make tool to [build the project](https://formulae.brew.sh/formula/make)
 - Yarn [package manager](https://formulae.brew.sh/formula/yarn)
 
+Make also sure that there is no local instance of PostgreSQL, Kafka, Redis, Localstack service
+or stop them while testing the project.
+
 ## To run the project and check uploads
 
 From the root folder:

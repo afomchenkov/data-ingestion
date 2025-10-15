@@ -11,6 +11,8 @@ import {
   ProcessedDataEntity,
   ProcessedDataService,
 } from '@data-ingestion/shared';
+import { parseISO, formatISO } from 'date-fns';
+
 export abstract class BaseDataService {
   protected abstract readonly logger: Logger;
   protected abstract readonly ingestJobService: IngestJobService;
@@ -91,6 +93,16 @@ export abstract class BaseDataService {
         return csvParser();
       default:
         throw new Error(`Unsupported format: ${format}`);
+    }
+  }
+
+  protected toISO8601(dateString: string): string {
+    try {
+      const date = parseISO(dateString);
+      return formatISO(date) || dateString;
+    } catch (err) {
+      this.logger.error(`Failed to convert date to ISO8601: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      return dateString;
     }
   }
 }
