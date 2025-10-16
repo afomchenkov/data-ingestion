@@ -110,8 +110,8 @@ output "kubeconfig" {
 }
 output "cluster_endpoint" { value = module.eks.cluster_endpoint }
 output "region" { value = var.aws_region }
-output "ecr_app_a" { value = aws_ecr_repository.app_a.repository_url }
-output "ecr_app_b" { value = aws_ecr_repository.app_b.repository_url }
+output "ecr_app_parser_url" { value = aws_ecr_repository.app_parser.repository_url }
+output "ecr_app_uploader_url" { value = aws_ecr_repository.app_uploader.repository_url }
 output "s3_bucket" { value = aws_s3_bucket.app_bucket.bucket }
 output "sqs_url" { value = aws_sqs_queue.app_queue.id }
 output "rds_endpoint" { value = module.rds.this_db_instance_address }
