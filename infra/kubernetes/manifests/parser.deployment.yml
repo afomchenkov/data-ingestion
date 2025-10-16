@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-parser
+  namespace: data-ingestion
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: app-parser
+  template:
+    metadata:
+      labels:
+        app: app-parser
+    spec:
+      containers:
+      - name: app-parser
+        image: <ECR_APP_PARSER_URL>:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: DATABASE_URL
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "256Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"

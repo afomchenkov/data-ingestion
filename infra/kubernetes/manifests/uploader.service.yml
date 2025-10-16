@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-uploader-svc
+  namespace: data-ingestion
+spec:
+  type: ClusterIP
+  selector:
+    app: app-uploader
+  ports:
+    - port: 80
+      targetPort: 8080
