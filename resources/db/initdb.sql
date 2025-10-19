@@ -60,7 +60,7 @@ CREATE TABLE processed_data (
     schema_id uuid REFERENCES data_schema(id),
     data jsonb NOT NULL,
     ingest_job_id uuid REFERENCES ingest_job(id),
-    content_hash TEXT,
+    content_hash TEXT, -- SHA256
     unique_key_value TEXT NOT NULL,
     created_at timestamptz DEFAULT now(),
     updated_at timestamptz DEFAULT now()
