@@ -1,7 +1,7 @@
 COMPOSE_FILES = \
   -f docker/compose.yml \
   -f docker/compose.db.yml \
-	-f docker/compose.kafka.yml \
+  -f docker/compose.kafka.yml \
   -f docker/compose.localstack.yml
 
 up:
