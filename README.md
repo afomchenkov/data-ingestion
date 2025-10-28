@@ -139,6 +139,15 @@ curl http://localhost:9200
 #   },
 #   "tagline" : "The OpenSearch Project: https://opensearch.org/"
 # }
+
+POST /search/index
+{
+  "id": "1",
+  "name": "Alice",
+  "email": "alice@example.com"
+}
+
+GET /search?q=Alice
 ```
 
 ## Check Kafka status
