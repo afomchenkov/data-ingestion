@@ -124,6 +124,23 @@ aws dynamodb create-table \
   --endpoint-url http://localhost:8000
 ```
 
+## OpenSearch
+
+```sh
+curl http://localhost:9200
+
+# {
+#   "name" : "opensearch",
+#   "cluster_name" : "docker-cluster",
+#   "cluster_uuid" : "...",
+#   "version" : {
+#     "number" : "2.15.0",
+#     "distribution" : "opensearch"
+#   },
+#   "tagline" : "The OpenSearch Project: https://opensearch.org/"
+# }
+```
+
 ## Check Kafka status
 
 ```sh
