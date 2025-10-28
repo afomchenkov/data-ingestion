@@ -114,6 +114,14 @@ docker volume rm $(docker volume ls -q)
 ```sh
 # check tables
 aws dynamodb list-tables --endpoint-url http://localhost:8000
+
+# create test table
+aws dynamodb create-table \
+  --table-name Users \
+  --attribute-definitions AttributeName=id,AttributeType=S \
+  --key-schema AttributeName=id,KeyType=HASH \
+  --billing-mode PAY_PER_REQUEST \
+  --endpoint-url http://localhost:8000
 ```
 
 ## Check Kafka status
