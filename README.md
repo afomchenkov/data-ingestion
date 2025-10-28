@@ -109,6 +109,13 @@ docker logs --tail 100 -f data-ingestion-db
 docker volume rm $(docker volume ls -q)
 ```
 
+## DynamoDB
+
+```sh
+# check tables
+aws dynamodb list-tables --endpoint-url http://localhost:8000
+```
+
 ## Check Kafka status
 
 ```sh
