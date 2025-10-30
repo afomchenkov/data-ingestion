@@ -1,6 +1,17 @@
 version: "3.8"
 
 services:
+  dynamodb-local:
+    image: amazon/dynamodb-local
+    container_name: dynamodb-local
+    ports:
+      - "8000:8000"
+    command: "-jar DynamoDBLocal.jar -sharedDb"
+    volumes:
+      - ./dynamodb_data:/home/dynamodblocal/data
+    networks:
+      - data-ingestion-network
+
   postgres:
     image: data-ingestion:dev
     container_name: data-ingestion-db
@@ -45,5 +56,25 @@ services:
     networks:
       - data-ingestion-network
 
+  opensearch:
+    image: opensearchproject/opensearch:2.15.0
+    container_name: opensearch
+    environment:
+      - discovery.type=single-node
+      - plugins.security.disabled=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "9200:9200"
+      - "9600:9600" # Performance Analyzer
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+    networks:
+      - data-ingestion-network
+
 volumes:
   ingestion-db-data:
+  opensearch-data:

@@ -1,6 +1,10 @@
 version: "3.8"
 
 networks:
+  # AWS_REGION=us-east-1
+  # AWS_ACCESS_KEY_ID=local
+  # AWS_SECRET_ACCESS_KEY=local
+  # DYNAMODB_ENDPOINT=http://localhost:8000
   data-ingestion-network:
     name: data-ingestion-network
     driver: bridge

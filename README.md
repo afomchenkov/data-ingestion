@@ -109,6 +109,47 @@ docker logs --tail 100 -f data-ingestion-db
 docker volume rm $(docker volume ls -q)
 ```
 
+## DynamoDB
+
+```sh
+# check tables
+aws dynamodb list-tables --endpoint-url http://localhost:8000
+
+# create test table
+aws dynamodb create-table \
+  --table-name Users \
+  --attribute-definitions AttributeName=id,AttributeType=S \
+  --key-schema AttributeName=id,KeyType=HASH \
+  --billing-mode PAY_PER_REQUEST \
+  --endpoint-url http://localhost:8000
+```
+
+## OpenSearch
+
+```sh
+curl http://localhost:9200
+
+# {
+#   "name" : "opensearch",
+#   "cluster_name" : "docker-cluster",
+#   "cluster_uuid" : "...",
+#   "version" : {
+#     "number" : "2.15.0",
+#     "distribution" : "opensearch"
+#   },
+#   "tagline" : "The OpenSearch Project: https://opensearch.org/"
+# }
+
+POST /search/index
+{
+  "id": "1",
+  "name": "Alice",
+  "email": "alice@example.com"
+}
+
+GET /search?q=Alice
+```
+
 ## Check Kafka status
 
 ```sh
