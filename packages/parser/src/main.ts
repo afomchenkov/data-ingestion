@@ -9,6 +9,7 @@ import { WinstonModule, utilities } from 'nest-winston';
 import { format, transports } from 'winston';
 import { dump } from 'js-yaml';
 import { ApiModule } from './modules/api.module';
+import { initCassandra } from './modules/cassandra/cassandra-client';
 
 const setupSwagger = async (app: INestApplication): Promise<void> => {
   const documentBuilder = new DocumentBuilder()
@@ -30,6 +31,7 @@ const setupSwagger = async (app: INestApplication): Promise<void> => {
 };
 
 async function bootstrap() {
+  await initCassandra();
   const app = await NestFactory.create(ApiModule, {
     bufferLogs: true,
     cors: true,

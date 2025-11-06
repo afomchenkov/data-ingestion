@@ -8,3 +8,11 @@ networks:
   data-ingestion-network:
     name: data-ingestion-network
     driver: bridge
+# environment:
+#   - CASSANDRA_CONTACT_POINTS=cassandra
+#   - CASSANDRA_KEYSPACE=users_keyspace
+#   - CASSANDRA_DATACENTER=dc1
+#   - DYNAMODB_ENDPOINT=http://dynamodb-local:8000
+#   - AWS_REGION=us-east-1
+#   - AWS_ACCESS_KEY_ID=local
+#   - AWS_SECRET_ACCESS_KEY=local
